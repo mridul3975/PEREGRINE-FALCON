@@ -15,11 +15,14 @@ export default function AgentDashboard() {
                 body: JSON.stringify({ resume, jobDesc }),
             });
             const data = await response.json();
-            setResult(data);
+            setResult(typeof data === 'string' ? data : JSON.stringify(data, null, 2));
         } catch (error) {
             console.error('Error analyzing job match:', error);
         }
         setLoading(false);
+    };
+    const handleResumeChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        setResume((e.target as HTMLTextAreaElement).value);
     };
 
     return (
@@ -30,7 +33,7 @@ export default function AgentDashboard() {
                 <textarea
                     placeholder="Paste Resume here..."
                     className="h-64 p-4 border rounded"
-                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setResume(e.target.value)}
+                    onChange={handleResumeChange}
                 />
                 <textarea
                     placeholder="Paste Job Description here..."

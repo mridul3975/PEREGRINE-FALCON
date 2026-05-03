@@ -1,21 +1,18 @@
-import { analyzeJobMatch } from "./phases/phase1_puppet";
+import { generateText } from 'ai';
+import { google } from '@ai-sdk/google';
+import { tailoringTools } from './phases/phase2_tools';
 
-const server = Bun.serve({
-    port: 3000,
-    async fetch(req) {
-        const url = new URL(req.url);
+export async function runAgentWithTools(resume: string, jobDesc: string) {
+    const result = await generateText({
+        model: google('gemini-1.5-flash'),
+        tools: tailoringTools,
+        // maxSteps allows the AI to call a tool AND then speak again in one go
+        maxSteps: 5,
+        system: `You are an AI Job Assistant. 
+    Your goal is to help the user tailor their resume.
+    If you see missing keywords, use the 'tailor_resume_section' tool to fix the summary.`,
+        prompt: `My resume says: "${resume}". The job wants: "${jobDesc}". Please help me.`,
+    });
 
-        // Endpoint for our frontend to call
-        if (url.pathname === "/api/analyze" && req.method === "POST") {
-            const { resume, jobDesc } = await req.json() as { resume: string; jobDesc: string };
-            const analysis = await analyzeJobMatch(resume, jobDesc);
-            return new Response(JSON.stringify(analysis), {
-                headers: { "Content-Type": "application/json" },
-            });
-        }
-
-        return new Response("Not Found", { status: 404 });
-    },
-});
-
-console.log(`🚀 Server running at http://localhost:${server.port}`);
+    return result;
+}
