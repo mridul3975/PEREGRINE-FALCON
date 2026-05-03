@@ -3,6 +3,10 @@
   "module": "index.ts",
   "type": "module",
   "private": true,
+  "scripts": {
+    "dev": "bun run src/Backend/server.ts",
+    "start": "bun run src/Backend/server.ts"
+  },
   "devDependencies": {
     "@types/bun": "latest",
     "@types/react": "^19.2.14",
@@ -14,6 +18,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@ai-sdk/gateway": "^3.0.109",
     "@ai-sdk/google": "^3.0.67",
     "@ai-sdk/openai": "^3.0.58",
     "ai": "^6.0.174",
