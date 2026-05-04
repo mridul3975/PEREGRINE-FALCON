@@ -1,32 +1,39 @@
 import { analyzeJobMatch } from "./phases/phase1_puppet";
-import { runAgentWithTools } from "./phases/phase2_agent";
 
 const server = Bun.serve({
     port: 3000,
     async fetch(req) {
         const url = new URL(req.url);
 
-        // --- Phase 1 Route ---
-        if (url.pathname === "/api/v1/analyze" && req.method === "POST") {
-            const { resume, jobDesc } = await req.json();
-            const analysis = await analyzeJobMatch(resume, jobDesc);
-            return Response.json(analysis);
+        // Handle CORS for your frontend
+        if (req.method === "OPTIONS") {
+            return new Response(null, {
+                headers: {
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+                    "Access-Control-Allow-Headers": "Content-Type",
+                },
+            });
         }
 
-        // --- Phase 2 Route ---
-        if (url.pathname === "/api/v2/tailor" && req.method === "POST") {
-            const { resume, jobDesc } = await req.json();
-            const result = await runAgentWithTools(resume, jobDesc);
+        if (url.pathname === "/api/v1/analyze" && req.method === "POST") {
+            try {
+                const { resume, jobDesc } = await req.json();
 
-            return Response.json({
-                answer: result.text,
-                steps: result.steps // Helpful for debugging tool usage
-            });
+                // Execute the AI logic
+                const analysis = await analyzeJobMatch(resume, jobDesc);
+
+                // RETURN the response to the user
+                return Response.json(analysis, {
+                    headers: { "Access-Control-Allow-Origin": "*" }
+                });
+            } catch (err: any) {
+                return Response.json({ error: err.message }, { status: 500 });
+            }
         }
 
         return new Response("Not Found", { status: 404 });
     },
 });
 
-console.log(`🚀 AgentHire running at http://localhost:3000`);
-
+console.log(`AgentHire running at http://localhost:${server.port}`);
