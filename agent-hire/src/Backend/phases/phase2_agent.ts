@@ -1,11 +1,11 @@
 import { generateText, stepCountIs } from 'ai';
-import { google } from '@ai-sdk/google';
+import { groq } from '@ai-sdk/groq';
 import { tailoringTools } from './phase2_tools';
 
 
 export async function runAgentWithTools(resume: string, jobDesc: string) {
     const result = await generateText({
-        model: google('gemini-1.5-flash'),
+        model: groq('llama-3.3-70b-versatile'),
         tools: tailoringTools,
         // allow multiple model/tool turns
         stopWhen: stepCountIs(5),
