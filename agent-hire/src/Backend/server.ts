@@ -1,39 +1,70 @@
-import { analyzeJobMatch } from "./phases/phase1_puppet";
+// src/server.ts
+import { config } from 'dotenv';
+import { analyzeJobMatch } from './phases/phase1_puppet'; // Assuming phase1_puppet.ts contains analyzeJobMatch
+import { runAgentWithTools } from './phases/phase2_agent'; // New import for Phase 2 agent
+
+config();
 
 const server = Bun.serve({
     port: 3000,
-    async fetch(req) {
+    async fetch(req: Request) {
         const url = new URL(req.url);
 
-        // Handle CORS for your frontend
-        if (req.method === "OPTIONS") {
-            return new Response(null, {
-                headers: {
-                    "Access-Control-Allow-Origin": "*",
-                    "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-                    "Access-Control-Allow-Headers": "Content-Type",
-                },
-            });
-        }
-
-        if (url.pathname === "/api/v1/analyze" && req.method === "POST") {
+        if (req.method === 'POST' && url.pathname === '/api/v1/analyze') {
             try {
-                const { resume, jobDesc } = await req.json();
+                if (!process.env.OPENROUTER_API_KEY) {
+                    console.error('OPENROUTER_API_KEY is not set.');
+                    return new Response(JSON.stringify({ error: 'Server configuration error: API Key not found.' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+                }
 
-                // Execute the AI logic
-                const analysis = await analyzeJobMatch(resume, jobDesc);
+                const { resume, jobDescription } = await req.json();
+                if (typeof resume !== 'string' || typeof jobDescription !== 'string' || !resume || !jobDescription) {
+                    return new Response(JSON.stringify({ error: 'Invalid input: "resume" and "jobDescription" must be non-empty strings.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+                }
 
-                // RETURN the response to the user
-                return Response.json(analysis, {
-                    headers: { "Access-Control-Allow-Origin": "*" }
-                });
-            } catch (err: any) {
-                return Response.json({ error: err.message }, { status: 500 });
+                const analysisResult = await analyzeJobMatch(resume, jobDescription);
+                return Response.json(analysisResult);
+
+            } catch (error) {
+                console.error('Error processing /api/v1/analyze request:', error);
+                const errorMessage = error instanceof Error ? error.message : 'Internal Server Error';
+                return new Response(JSON.stringify({ error: errorMessage, details: 'Failed to analyze job match.' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
             }
         }
 
-        return new Response("Not Found", { status: 404 });
+        if (req.method === 'POST' && url.pathname === '/api/v2/tailor') {
+            try {
+                if (!process.env.OPENROUTER_API_KEY) {
+                    console.error('OPENROUTER_API_KEY for Phase 2 is not set.');
+                    return new Response(JSON.stringify({ error: 'Server configuration error: API Key not found for tailoring agent.' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+                }
+
+                const { resume, jobDescription, resumeSectionToTailor } = await req.json();
+                if (typeof resume !== 'string' || typeof jobDescription !== 'string' || !resume || !jobDescription) {
+                    return new Response(JSON.stringify({ error: 'Invalid input: "resume" and "jobDescription" must be non-empty strings.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+                }
+
+                // Assuming you'll decide which section to tailor within the prompt or pass it
+                // For now, let the AI decide or provide a default summary if not specified
+                const agentResult = await runAgentWithTools(resume, jobDescription);
+
+                // Now, agentResult.object will contain the structured output
+                return Response.json({
+                    // You can return the full object, or just the parts you need for the frontend
+                    // For example, just the final recommendation:
+                    message: agentResult.object.tailoringRecommendation,
+                    preview: agentResult.object.finalResumeSummary,
+                    fullResult: agentResult.object // Optionally return the whole structured object
+                });
+            } catch (error) {
+                console.error('Error processing /api/v2/tailor request:', error);
+                const errorMessage = error instanceof Error ? error.message : 'Internal Server Error';
+                return new Response(JSON.stringify({ error: errorMessage, details: 'Failed to run tailoring agent.' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+            }
+        }
+
+        return new Response('Not Found', { status: 404 });
     },
 });
 
-console.log(`AgentHire running at http://localhost:${server.port}`);
+console.log(`AgentHire Bun server running on http://localhost:${server.port}`);
