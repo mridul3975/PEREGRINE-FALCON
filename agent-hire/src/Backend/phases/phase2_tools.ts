@@ -12,21 +12,20 @@ export const tailoringTools = {
     }),
 
     // Tool 2: The core logic for tailoring
-    tailor_resume_section: tool({
-        description: 'Rewrites a specific section of a resume to align with keywords.',
+    tailor_resume_autonomously: tool({
+        description: 'Analyzes a full resume against a job description, identifies mismatched sections, and returns the optimized resume content.',
         inputSchema: z.object({
-            sectionName: z.string().describe('The name of the section, e.g., "Summary"'),
-            originalText: z.string().describe('The current text of that section'),
-            focusKeywords: z.array(z.string()).describe('List of keywords to integrate'),
+            fullResumeData: z.string().describe('The entire text or JSON string of the current resume'),
+            jobDescription: z.string().describe('The target job description to align with'),
         }),
-        execute: async ({ sectionName, originalText, focusKeywords }: { sectionName: string; originalText: string; focusKeywords: string[] }) => {
-            console.log(`[SERVER] Executing tool: tailor_resume_section for ${sectionName}`);
+        execute: async ({ fullResumeData, jobDescription }) => {
+            console.log(`[SERVER] AI is analyzing and tailoring the full resume...`);
 
-            // In Phase 3, you'll save this to SQLite. For now, we simulate the work.
+            // Logic to process the resume goes here (e.g., calling a LLM or saving to DB)
             return {
                 status: 'success',
-                message: `Optimized ${sectionName} by integrating: ${focusKeywords.join(', ')}`,
-                preview: `New ${sectionName} starts with: "Experienced professional with deep expertise in ${focusKeywords[0]}..."`
+                updatesMade: ['Summary', 'Experience', 'Skills'],
+                optimizedContent: "...", // The result of the AI's internal processing
             };
         },
     }),
