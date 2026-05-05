@@ -40,10 +40,4 @@ This project is a step-by-step guide to building an AI Job Agent. We start with 
 
 ---
 
-### Your First Task (Day 1)
-Don't worry about the AI yet. Just get your "Puppet" UI ready:
-1. One `<textarea>` for your Resume.
-2. One `<textarea>` for a Job Description.
-3. A "Match Me" button.
-
 **Would you like me to provide the basic React code for this Day 1 UI so you can get started?**
