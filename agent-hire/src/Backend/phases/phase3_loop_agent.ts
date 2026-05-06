@@ -37,7 +37,13 @@ export async function analyzeAndProcessJob(
             model: openrouter('openai/gpt-3.5-turbo'),
             tools: tailoringTools,
             system: `You are an intelligent job agent. Your task is to analyze a given job summary against the user's resume.
-                    Determine if it's a 'Good Match'. If it is, provide detailed reasoning, suggest a resume section to tailor (if applicable), list keywords, and generate a personalized application note.
+                    Determine whether the resume is a strong match for the job using these rules:
+                    1. Match the job title or seniority keyword (for example: Junior, Mid-level, Senior, Lead, Manager).
+                    2. Match at least 3 required technical skills or keywords from the job summary.
+                    3. Match the same domain or role language (for example, frontend, backend, machine learning, infrastructure, product design).
+                    Set isGoodMatch to true only when these criteria are clearly satisfied.
+                    Set isGoodMatch to false only when there is a clear mismatch in title/seniority, skills, or domain language.
+                    If it is a good match, provide detailed reasoning, suggest a resume section to tailor (if applicable), list relevant keywords, and generate a personalized application note.
                     You can recommend tailoring the resume by identifying relevant keywords and suggesting which section to update.
                     If tailoring is useful, you should use the available tailoring tools.
                     After any tool calls are complete, your final output MUST be a JSON object only, with no markdown, no commentary, and no surrounding text.`,
@@ -66,8 +72,24 @@ export async function analyzeAndProcessJob(
             }
         };
 
-        const rawDecision = extractJson(decisionResult.text);
-        const decision = jobDecisionSchema.parse(rawDecision);
+        let decision: JobDecision;
+        try {
+            const rawDecision = extractJson(decisionResult.text);
+            decision = jobDecisionSchema.parse(rawDecision);
+        } catch (parseError) {
+            const errorDetails = parseError instanceof Error ? parseError.message : String(parseError);
+            const fallbackAnalysis = `Phase 3 parse failed. Raw model output: ${decisionResult.text}`;
+            await db.update(discoveredJobs)
+                .set({
+                    status: 'bad_match',
+                    aiAnalysis: fallbackAnalysis,
+                    applicationNote: `Failed to interpret AI output: ${errorDetails}`,
+                })
+                .where(eq(discoveredJobs.id, jobId));
+
+            console.error(`Phase 3 parse error for Job ID ${jobId}:`, errorDetails);
+            throw new Error(`Unable to parse Phase 3 AI response: ${errorDetails}`);
+        }
 
         await db.update(discoveredJobs)
             .set({
@@ -78,8 +100,6 @@ export async function analyzeAndProcessJob(
             .where(eq(discoveredJobs.id, jobId));
 
         console.log(`[Phase 3] Job ID ${jobId} processed. Good match: ${decision.isGoodMatch}`);
-
-
 
         return decision;
 
