@@ -1,6 +1,6 @@
 import './index.css';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import AgentDashboard from './Frontend/AgentDashboard';
+import App from './Frontend/App';
 
-createRoot(document.getElementById('root')!).render(<AgentDashboard />);
+createRoot(document.getElementById('root')!).render(<App />);

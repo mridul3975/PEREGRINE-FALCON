@@ -13,7 +13,11 @@ type Job = {
     updatedAt: string;
 };
 
-export default function JobReviewPage() {
+type JobReviewPageProps = {
+    navigate: (to: string) => void;
+};
+
+export default function JobReviewPage({ navigate }: JobReviewPageProps) {
     const [jobs, setJobs] = useState<Job[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -62,6 +66,7 @@ export default function JobReviewPage() {
 
     return (
         <div className="p-8 max-w-6xl mx-auto">
+            <button type="button" onClick={() => navigate('/')} className="mb-6 px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Back to Dashboard</button>
             <h1 className="text-3xl font-bold mb-6">AgentHire: Job Review Dashboard</h1>
 
             {jobs.length === 0 && <p className="text-gray-600">No jobs processed yet. Go to the main dashboard to input jobs!</p>}

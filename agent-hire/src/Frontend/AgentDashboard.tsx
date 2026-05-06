@@ -1,7 +1,12 @@
 // frontend/AgentDashboard.tsx (Conceptual)
 import React, { useState } from 'react';
+import JSON5 from 'json5';
 
-export default function AgentDashboard() {
+type AgentDashboardProps = {
+    navigate: (to: string) => void;
+};
+
+export default function AgentDashboard({ navigate }: AgentDashboardProps) {
     const [resume, setResume] = useState('');
     const [jobDescription, setJobDescription] = useState('');
     const [agentResponse, setAgentResponse] = useState('');
@@ -10,12 +15,85 @@ export default function AgentDashboard() {
     const [jobSummariesInput, setJobSummariesInput] = useState('');
     const [processedJobIds, setProcessedJobIds] = useState<number[]>([]);
 
+    type ParsedJob = {
+        title?: string;
+        company?: string;
+        summary?: string;
+        [key: string]: string | undefined;
+    };
+
+    const parseJobBlock = (block: string): ParsedJob => {
+        const lines = block
+            .split(/\r?\n|;|\|/)
+            .map((line) => line.trim())
+            .filter(Boolean);
+
+        const result: ParsedJob = {};
+
+        for (const line of lines) {
+            const kvMatch = line.match(/^\s*([A-Za-z ]+?)\s*(?:[:=]|\-\s)\s*(.+)$/);
+            if (kvMatch !== null && kvMatch[1] && kvMatch[2]) {
+                const key = kvMatch[1].trim().toLowerCase().replace(/\s+/g, '_');
+                result[key] = kvMatch[2].trim();
+                continue;
+            }
+
+            const lower = line.toLowerCase();
+            if (lower.startsWith('title')) {
+                result.title = line.split(/[:=]/).slice(1).join(':').trim();
+                continue;
+            }
+            if (lower.startsWith('company')) {
+                result.company = line.split(/[:=]/).slice(1).join(':').trim();
+                continue;
+            }
+            if (lower.startsWith('summary') || lower.startsWith('description') || lower.startsWith('jobdescription')) {
+                result.summary = line.split(/[:=]/).slice(1).join(':').trim();
+                continue;
+            }
+        }
+
+        if (!result.title || !result.company || !result.summary) {
+            if (!result.title && lines.length > 0) result.title = lines[0];
+            if (!result.company && lines.length > 1) result.company = lines[1];
+            if (!result.summary && lines.length > 2) result.summary = lines.slice(2).join(' ');
+            if (!result.summary && lines.length === 2) result.summary = lines[1];
+            if (!result.company && lines.length === 1) result.company = 'Unknown Company';
+        }
+
+        return result;
+    };
+
+    const parseJobSummariesInput = (input: string) => {
+        const trimmed = input.trim();
+        if (!trimmed) return [];
+
+        try {
+            const parsed = JSON.parse(trimmed);
+            if (Array.isArray(parsed)) return parsed;
+            if (typeof parsed === 'object' && parsed !== null) return [parsed];
+        } catch (jsonError) {
+            try {
+                const parsed = JSON5.parse(trimmed);
+                if (Array.isArray(parsed)) return parsed;
+                if (typeof parsed === 'object' && parsed !== null) return [parsed];
+            } catch {
+                const blocks = trimmed.split(/\n{2,}|---|\*\*/).map((block) => block.trim()).filter(Boolean);
+                const parsed = blocks.map(parseJobBlock).filter((job) => Object.keys(job).length > 0);
+                if (parsed.length > 0) return parsed;
+            }
+        }
+
+        throw new Error('Unable to parse job summaries. Provide a list of job objects or simple job blocks.');
+    };
+
     const handleTailorResume = async () => {
         setIsLoading(true);
         setError(null);
         setAgentResponse('');
 
         try {
+            console.log('handleTailorResume clicked', { resumeLength: resume.length, jobDescriptionLength: jobDescription.length });
             const response = await fetch('/api/v2/tailor', {
                 method: 'POST',
                 headers: {
@@ -52,16 +130,37 @@ export default function AgentDashboard() {
         setProcessedJobIds([]);
 
         try {
+            console.log('handleProcessMultipleJobs clicked', { resumeLength: resume.length, jobSummariesInputLength: jobSummariesInput.length });
 
-            const parsedJobs = JSON.parse(jobSummariesInput);
-            if (!Array.isArray(parsedJobs) || parsedJobs.some(job => !job.title || !job.company || !job.summary)) {
-                throw new Error("Invalid job summaries format. Expected an array of objects with title, company, summary.");
+            const parsedJobs = parseJobSummariesInput(jobSummariesInput);
+            if (!Array.isArray(parsedJobs) || parsedJobs.length === 0) {
+                throw new Error("Invalid job summaries format. Expected a non-empty JSON array of jobs.");
             }
+
+            if (!resume) {
+                throw new Error('Please enter your resume before processing jobs.');
+            }
+
+            const normalizedJobs = parsedJobs.map((job: any, index: number) => {
+                if (typeof job !== 'object' || job === null) {
+                    throw new Error(`Invalid job at index ${index}. Expected an object.`);
+                }
+
+                const title = job.title || job.jobTitle || job.position;
+                const company = job.company || job.employer;
+                const summary = job.summary || job.description || job.jobDescription;
+
+                if (!title || !company || !summary) {
+                    throw new Error(`Invalid job at index ${index}. Each job must include title, company, and summary/description.`);
+                }
+
+                return { title, company, summary };
+            });
 
             const response = await fetch('/api/v3/process-jobs', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ resume: resume, jobs: parsedJobs }),
+                body: JSON.stringify({ resume, jobs: normalizedJobs }),
             });
 
             if (!response.ok) {
@@ -110,6 +209,7 @@ export default function AgentDashboard() {
             </div>
 
             <button
+                type="button"
                 onClick={handleTailorResume}
                 disabled={isLoading || !resume || !jobDescription}
                 className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-blue-300"
@@ -129,8 +229,9 @@ export default function AgentDashboard() {
                 ></textarea>
             </div>
             <button
+                type="button"
                 onClick={handleProcessMultipleJobs}
-                disabled={isLoading || !resume || !jobSummariesInput}
+                disabled={isLoading || !jobSummariesInput}
                 className="w-full px-6 py-3 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:bg-green-300"
             >
                 {isLoading ? 'Processing Jobs...' : 'Run Autonomous Job Agent (Phase 3)'}
@@ -139,7 +240,7 @@ export default function AgentDashboard() {
             {processedJobIds.length > 0 && (
                 <div className="mt-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
                     <p>Successfully initiated processing for {processedJobIds.length} jobs. Job IDs: {processedJobIds.join(', ')}</p>
-                    <p>Visit the <a href="/review" className="text-green-800 underline">Review Dashboard</a> to see the results!</p>
+                    <p>Visit the <button type="button" onClick={() => navigate('/review')} className="text-green-800 underline">Review Dashboard</button> to see the results!</p>
                 </div>
             )}
 
