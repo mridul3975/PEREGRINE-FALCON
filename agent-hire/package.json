@@ -6,13 +6,14 @@
   "scripts": {
     "dev": "bun run src/Backend/server.ts",
     "start": "bun run src/Backend/server.ts",
-"dev:frontend": "vite",
-"build:frontend": "vite build",
-"preview:frontend": "vite preview"
+    "dev:frontend": "vite",
+    "build:frontend": "vite build",
+    "preview:frontend": "vite preview"
   },
   "devDependencies": {
     "@types/bun": "latest",
     "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
     "autoprefixer": "^10.5.0",
     "drizzle-kit": "^0.31.10",
