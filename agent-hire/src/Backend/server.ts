@@ -54,7 +54,7 @@ const server = Bun.serve({
 
                 return Response.json({
                     text: agentResult.text,
-                    finalMessage: agentResult.text || optimizedContent || '',
+                    finalMessage: optimizedContent || agentResult.text || '',
                     optimizedContent,
                     toolResults: agentResult.toolResults,
                     finishReason: agentResult.finishReason,
@@ -100,7 +100,7 @@ const server = Bun.serve({
 
         if (req.method === 'PUT' && url.pathname.startsWith('/api/v3/jobs/')) {
             const parts = url.pathname.split('/');
-            const jobId = parseInt(parts[4] ?? '', 10); 
+            const jobId = parseInt(parts[4] ?? '', 10);
 
             if (isNaN(jobId)) {
                 return new Response(JSON.stringify({ error: 'Invalid Job ID.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });

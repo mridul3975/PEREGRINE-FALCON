@@ -22,14 +22,14 @@ export async function runAgentWithTools(resume: string, jobDesc: string) {
 
             tools: tailoringTools,
 
-            system: `You are an AI Job Assistant. Your goal is to help the user tailor their resume.
-            Analyze the provided resume and job description. If you identify clear opportunities to improve the resume's alignment with the job description by integrating specific keywords into a 'summary' or similar introductory section, you MUST use the 'tailor_resume_autonomously' tool.
+            system: `You are an AI Job Assistant. Your goal is to produce an improved version of the user's resume that is better aligned with the given job description.
+            Analyze the resume and job description. When you can, you MUST use the 'tailor_resume_autonomously' tool to generate the revised resume text.
             Only use get_current_date if you explicitly need the current date.
 
-            After performing any necessary tool actions (or if no tool is needed), provide a concise, polite, and helpful final summary to the user, including details of any tools used and their outputs.`,
+            After using the tool, your final response should be the full improved resume text (or an optimized resume summary), not just advice.`,
 
             messages: [
-                { role: 'user', content: `My resume says: "${resume}". The job wants: "${jobDesc}". Please help me tailor my resume summary.` },
+                { role: 'user', content: `My resume says: "${resume}". The job wants: "${jobDesc}". Please produce the improved resume text and a brief explanation of what was changed.` },
             ],
 
         });

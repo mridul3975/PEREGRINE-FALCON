@@ -29,8 +29,8 @@ export const tailoringTools = {
 
             const result = await generateText({
                 model: openrouter('openai/gpt-3.5-turbo'),
-                system: `You are a resume tailoring assistant. Analyze the provided resume and job description, and return an improved or optimized resume summary plus specific recommendations for tailoring.
-                Provide the full optimized resume content in the response.`,
+                system: `You are a resume tailoring assistant. Analyze the provided resume and job description, and return the improved resume text directly.
+                Your response should contain the full optimized resume content, focusing on the relevant sections and keywords from the job description. Do not return unrelated advice or metadata.`,
                 messages: [
                     {
                         role: 'user',
