@@ -1,5 +1,11 @@
-import { tool } from 'ai';
+import { createOpenAI } from '@ai-sdk/openai';
+import { tool, generateText } from 'ai';
 import { z } from 'zod';
+
+const openrouter = createOpenAI({
+    baseURL: 'https://openrouter.ai/api/v1',
+    apiKey: process.env.OPENROUTER_API_KEY,
+});
 
 export const tailoringTools = {
     // Tool 1: A simple helper to show the AI can get external data
@@ -21,11 +27,22 @@ export const tailoringTools = {
         execute: async ({ fullResumeData, jobDescription }) => {
             console.log(`[SERVER] AI is analyzing and tailoring the full resume...`);
 
-            // Logic to process the resume goes here (e.g., calling a LLM or saving to DB)
+            const result = await generateText({
+                model: openrouter('openai/gpt-3.5-turbo'),
+                system: `You are a resume tailoring assistant. Analyze the provided resume and job description, and return an improved or optimized resume summary plus specific recommendations for tailoring.
+                Provide the full optimized resume content in the response.`,
+                messages: [
+                    {
+                        role: 'user',
+                        content: `Resume:\n${fullResumeData}\n\nJob Description:\n${jobDescription}`,
+                    },
+                ],
+            });
+
             return {
                 status: 'success',
                 updatesMade: ['Summary', 'Experience', 'Skills'],
-                optimizedContent: "...", // The result of the AI's internal processing
+                optimizedContent: result.text,
             };
         },
     }),

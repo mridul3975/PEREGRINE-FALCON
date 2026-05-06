@@ -47,12 +47,18 @@ const server = Bun.serve({
                 }
 
                 const agentResult = await runAgentWithTools(resume, jobDescription);
+                const toolResults = (agentResult.toolResults ?? []) as any;
+                const optimizedContent = Array.isArray(toolResults)
+                    ? toolResults.map((item: any) => item?.output?.optimizedContent ?? item?.output ?? item?.result).find(Boolean)
+                    : toolResults?.output?.optimizedContent ?? toolResults?.output ?? toolResults?.result;
 
                 return Response.json({
                     text: agentResult.text,
+                    finalMessage: agentResult.text || optimizedContent || '',
+                    optimizedContent,
                     toolResults: agentResult.toolResults,
                     finishReason: agentResult.finishReason,
-                    usage: agentResult.usage
+                    usage: agentResult.usage,
                 });
             } catch (error) {
                 console.error('Error processing /api/v2/tailor request:', error);

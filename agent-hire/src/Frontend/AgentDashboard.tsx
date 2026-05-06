@@ -31,8 +31,12 @@ export default function AgentDashboard() {
 
             // The backend returns { fullConversation: [...], finalMessage: "..." }
             const data = await response.json();
-            setAgentResponse(data.finalMessage || "No specific final message from AI, check console for full conversation.");
-            console.log("Full Agent Conversation:", data.fullConversation);
+            console.log('Tailor response payload:', data);
+            const rawAgentText =
+                typeof data === 'string'
+                    ? data
+                    : data.optimizedContent || data.finalMessage || data.text || data.output || data.message || JSON.stringify(data, null, 2);
+            setAgentResponse(String(rawAgentText));
 
         } catch (err: any) {
             console.error("Frontend error:", err);
@@ -80,11 +84,11 @@ export default function AgentDashboard() {
 
     return (
         <div className="p-8 max-w-4xl mx-auto">
-            <h1 className="text-3xl font-bold mb-6 text-blue-500">AgentHire: Resume Tailor (Phase 2)</h1>
+            <h1 className="text-3xl font-bold mb-6 text-blue-950">AgentHire: Resume Tailor (Phase 2)</h1>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <div>
-                    <label htmlFor="resume" className="block text-lg font-medium text-red-500 mb-2">Your Resume</label>
+                    <label htmlFor="resume" className="block text-lg font-medium text-gray-700 mb-2">Your Resume</label>
                     <textarea
                         id="resume"
                         className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-900 h-64"

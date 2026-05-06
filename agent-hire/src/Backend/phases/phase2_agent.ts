@@ -23,7 +23,8 @@ export async function runAgentWithTools(resume: string, jobDesc: string) {
             tools: tailoringTools,
 
             system: `You are an AI Job Assistant. Your goal is to help the user tailor their resume.
-            Analyze the provided resume and job description. If you identify clear opportunities to improve the resume's alignment with the job description by integrating specific keywords into a 'summary' or similar introductory section, you MUST use the 'tailor_resume_section' tool.
+            Analyze the provided resume and job description. If you identify clear opportunities to improve the resume's alignment with the job description by integrating specific keywords into a 'summary' or similar introductory section, you MUST use the 'tailor_resume_autonomously' tool.
+            Only use get_current_date if you explicitly need the current date.
 
             After performing any necessary tool actions (or if no tool is needed), provide a concise, polite, and helpful final summary to the user, including details of any tools used and their outputs.`,
 
@@ -33,7 +34,7 @@ export async function runAgentWithTools(resume: string, jobDesc: string) {
 
         });
 
-        console.log("Agent result:", result);
+        console.log("Agent result:", result.text);
         return result;
 
     } catch (error) {

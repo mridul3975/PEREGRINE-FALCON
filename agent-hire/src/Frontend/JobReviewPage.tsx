@@ -50,7 +50,7 @@ export default function JobReviewPage() {
             if (!response.ok) {
                 throw new Error('Failed to update job status.');
             }
-            fetchJobs(); // Refresh the list
+            fetchJobs();
         } catch (err: any) {
             setError(err.message);
             console.error(err);
