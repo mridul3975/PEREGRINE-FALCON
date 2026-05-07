@@ -12,7 +12,8 @@ export type IncomingJobSummary = {
 
 export async function orchestrateJobProcessing(
     jobSummaries: IncomingJobSummary[],
-    userResume: string
+    userResume: string,
+    userId: number
 ): Promise<{ processedCount: number; newJobIds: number[] }> {
     const newJobIds: number[] = [];
 
@@ -22,6 +23,7 @@ export async function orchestrateJobProcessing(
             company: job.company,
             summary: job.summary,
             status: 'pending_review',
+            userId,
         }).returning({ id: discoveredJobs.id });
 
         const jobId = insertedJob[0]?.id;
