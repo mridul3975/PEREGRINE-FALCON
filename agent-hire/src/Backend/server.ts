@@ -1,8 +1,10 @@
 import { config } from 'dotenv';
 import { analyzeJobMatch } from './phases/phase1_puppet';
 import { runAgentWithTools } from './phases/phase2_agent';
-config();
 import { orchestrateJobProcessing, type IncomingJobSummary } from './phases/phase3_orchestrator';
+import { authMiddleware } from '../middleware/authmiddleware';
+import { SignupUser, loginUser, refreshAccessToken } from '../auth/auth';
+config();
 import { discoveredJobs } from '../db/schema';
 import { db } from '../db/connection';
 import { sql, eq } from 'drizzle-orm';
@@ -11,6 +13,13 @@ const server = Bun.serve({
     port: 3000,
     async fetch(req: Request) {
         const url = new URL(req.url);
+
+        if (url.pathname.startsWith('/api/') && !url.pathname.startsWith('/api/auth')) {
+            const authResponse = await authMiddleware(req);
+            if (authResponse) {
+                return authResponse;
+            }
+        }
 
         if (req.method === 'POST' && url.pathname === '/api/v1/analyze') {
             try {
@@ -67,6 +76,44 @@ const server = Bun.serve({
             }
         }
 
+        if (req.method === 'POST' && url.pathname === '/api/auth/register') {
+            try {
+                const userData = await req.json();
+                const newUser = await SignupUser(userData);
+                return Response.json({ user: newUser, message: 'Registration successful. Please log in.' });
+            } catch (error) {
+                console.error('Error processing /api/auth/register request:', error);
+                const errorMessage = error instanceof Error ? error.message : 'Internal Server Error';
+                return new Response(JSON.stringify({ error: errorMessage }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+            }
+        }
+
+        if (req.method === 'POST' && url.pathname === '/api/auth/login') {
+            try {
+                const credentials = await req.json();
+                const result = await loginUser(credentials);
+                return Response.json(result);
+            } catch (error) {
+                console.error('Error processing /api/auth/login request:', error);
+                const errorMessage = error instanceof Error ? error.message : 'Invalid credentials';
+                return new Response(JSON.stringify({ error: errorMessage }), { status: 401, headers: { 'Content-Type': 'application/json' } });
+            }
+        }
+
+        if (req.method === 'POST' && url.pathname === '/api/auth/refresh') {
+            try {
+                const { refreshToken } = await req.json();
+                if (typeof refreshToken !== 'string' || !refreshToken) {
+                    return new Response(JSON.stringify({ error: 'A valid refreshToken is required.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+                }
+                const tokens = await refreshAccessToken(refreshToken);
+                return Response.json(tokens);
+            } catch (error) {
+                console.error('Error processing /api/auth/refresh request:', error);
+                const errorMessage = error instanceof Error ? error.message : 'Failed to refresh token.';
+                return new Response(JSON.stringify({ error: errorMessage }), { status: 401, headers: { 'Content-Type': 'application/json' } });
+            }
+        }
 
         if (req.method === 'POST' && url.pathname === '/api/v3/process-jobs') {
             try {
