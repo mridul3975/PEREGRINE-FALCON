@@ -15,6 +15,13 @@
       "when": 1778138482070,
       "tag": "0001_deep_maggott",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1778143012719,
+      "tag": "0002_colossal_tana_nile",
+      "breakpoints": true
     }
   ]
 }

@@ -33,3 +33,12 @@ export const users = sqliteTable('users', {
     createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
     updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
 });
+
+export const refreshTokens = sqliteTable('refresh_tokens', {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    userId: integer('user_id').notNull(),
+    token_hash: text('token').notNull(),
+    expiresAt: text('expires_at').notNull(),
+    isRevoked: integer('is_revoked').default(0).notNull(), // 0 = false, 1 = true
+    replacedBy: text('replaced_by'), // Store the new token that replaces this one (for rotation tracking)
+});    
