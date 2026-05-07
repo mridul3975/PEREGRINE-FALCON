@@ -16,11 +16,16 @@ export default function App() {
     }, []);
 
     useEffect(() => {
+        if (!auth.isHydrated) return;
         if (!auth.isAuthenticated && path !== '/login' && path !== '/register') {
             window.history.replaceState({}, '', '/login');
             setPath('/login');
         }
-    }, [auth.isAuthenticated, path]);
+        if (auth.isAuthenticated && (path === '/login' || path === '/register')) {
+            window.history.replaceState({}, '', '/');
+            setPath('/');
+        }
+    }, [auth.isAuthenticated, auth.isHydrated, path]);
 
     const navigate = (to: string) => {
         if (to !== window.location.pathname) {
@@ -28,6 +33,10 @@ export default function App() {
             setPath(to);
         }
     };
+
+    if (!auth.isHydrated) {
+        return null;
+    }
 
     if (!auth.isAuthenticated) {
         if (path === '/register') {

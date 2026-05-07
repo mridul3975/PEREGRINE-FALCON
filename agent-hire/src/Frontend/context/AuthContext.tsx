@@ -11,6 +11,7 @@ export interface AuthContextValue {
     refreshToken: string | null;
     user: AuthUser | null;
     isAuthenticated: boolean;
+    isHydrated: boolean;
     login: (accessToken: string, refreshToken: string, userId: number, email: string, name?: string | null) => void;
     logout: () => void;
     getAuthHeaders: () => Record<string, string>;
@@ -22,6 +23,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [accessToken, setAccessToken] = useState<string | null>(null);
     const [refreshToken, setRefreshToken] = useState<string | null>(null);
     const [user, setUser] = useState<AuthUser | null>(null);
+    const [isHydrated, setIsHydrated] = useState(false);
 
     useEffect(() => {
         const storedAccessToken = localStorage.getItem('agenthire_accessToken');
@@ -41,6 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 setUser(null);
             }
         }
+        setIsHydrated(true);
     }, []);
 
     const login = (newAccessToken: string, newRefreshToken: string, userId: number, email: string, name?: string | null) => {
@@ -74,11 +77,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             refreshToken,
             user,
             isAuthenticated: Boolean(accessToken),
+            isHydrated,
             login,
             logout,
             getAuthHeaders,
         }),
-        [accessToken, refreshToken, user]
+        [accessToken, refreshToken, user, isHydrated]
     );
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
