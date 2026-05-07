@@ -1,7 +1,3 @@
-This is the perfect way to learn. By breaking it into these three phases, you aren't just "using AI"—you are learning how to **architect** it. You start with a simple request and end with a system that thinks for itself.
-
----
-
 # Product Requirements Document (PRD): The Agentic Path
 
 ## 1. Objectives

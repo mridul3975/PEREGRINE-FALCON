@@ -79,8 +79,8 @@ const server = Bun.serve({
         if (req.method === 'POST' && url.pathname === '/api/auth/register') {
             try {
                 const userData = await req.json();
-                const newUser = await SignupUser(userData);
-                return Response.json({ user: newUser, message: 'Registration successful. Please log in.' });
+                const result = await SignupUser(userData);
+                return Response.json(result);
             } catch (error) {
                 console.error('Error processing /api/auth/register request:', error);
                 const errorMessage = error instanceof Error ? error.message : 'Internal Server Error';
@@ -118,12 +118,17 @@ const server = Bun.serve({
         if (req.method === 'POST' && url.pathname === '/api/v3/process-jobs') {
             try {
                 const { jobs, resume } = await req.json();
+                const currentUser = (req as any).user;
+
+                if (!currentUser || typeof currentUser.userId !== 'number') {
+                    return new Response(JSON.stringify({ error: 'Unauthorized user.' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
+                }
 
                 if (!Array.isArray(jobs) || jobs.length === 0 || !resume || typeof resume !== 'string') {
                     return new Response(JSON.stringify({ error: 'Invalid input: "jobs" array and "resume" string are required.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
                 }
 
-                const result = await orchestrateJobProcessing(jobs as IncomingJobSummary[], resume);
+                const result = await orchestrateJobProcessing(jobs as IncomingJobSummary[], resume, currentUser.userId);
                 return Response.json({ message: `Successfully initiated processing for ${result.processedCount} jobs.`, newJobIds: result.newJobIds });
 
             } catch (error) {
@@ -136,7 +141,12 @@ const server = Bun.serve({
 
         if (req.method === 'GET' && url.pathname === '/api/v3/jobs') {
             try {
-                const allJobs = await db.select().from(discoveredJobs);
+                const currentUser = (req as any).user;
+                if (!currentUser || typeof currentUser.userId !== 'number') {
+                    return new Response(JSON.stringify({ error: 'Unauthorized user.' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
+                }
+
+                const allJobs = await db.select().from(discoveredJobs).where(eq(discoveredJobs.userId, currentUser.userId));
                 return Response.json(allJobs);
             } catch (error) {
                 console.error('Error fetching jobs:', error);
@@ -148,9 +158,14 @@ const server = Bun.serve({
         if (req.method === 'PUT' && url.pathname.startsWith('/api/v3/jobs/')) {
             const parts = url.pathname.split('/');
             const jobId = parseInt(parts[4] ?? '', 10);
+            const currentUser = (req as any).user;
 
             if (isNaN(jobId)) {
                 return new Response(JSON.stringify({ error: 'Invalid Job ID.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+            }
+
+            if (!currentUser || typeof currentUser.userId !== 'number') {
+                return new Response(JSON.stringify({ error: 'Unauthorized user.' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
             }
 
             try {
@@ -160,9 +175,13 @@ const server = Bun.serve({
                     return new Response(JSON.stringify({ error: `Invalid status provided. Must be one of: ${validStatuses.join(', ')}` }), { status: 400, headers: { 'Content-Type': 'application/json' } });
                 }
 
-                await db.update(discoveredJobs)
+                const updateResult = await db.update(discoveredJobs)
                     .set({ status: status, updatedAt: sql`CURRENT_TIMESTAMP` })
-                    .where(eq(discoveredJobs.id, jobId));
+                    .where(eq(discoveredJobs.id, jobId), eq(discoveredJobs.userId, currentUser.userId));
+
+                if (updateResult.rowsAffected === 0) {
+                    return new Response(JSON.stringify({ error: 'Job not found or not owned by the current user.' }), { status: 404, headers: { 'Content-Type': 'application/json' } });
+                }
 
                 return Response.json({ message: `Job ${jobId} status updated to ${status}.` });
 

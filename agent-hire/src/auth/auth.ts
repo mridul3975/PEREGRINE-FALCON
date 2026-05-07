@@ -84,9 +84,31 @@ export async function SignupUser(userData: z.infer<typeof registerSchema>) {
         email,
         passwordHash,
         name,
-    }).returning({ id: users.id, email: users.email });
+    }).returning({ id: users.id, email: users.email, name: users.name });
 
-    return newUser[0];
+    const createdUser = newUser[0];
+    if (!createdUser) {
+        throw new Error('User registration failed. Please try again.');
+    }
+
+    const payload: JwtPayload = { userId: createdUser.id, email: createdUser.email };
+    const accessToken = generateAccessToken(payload);
+    const refreshToken = generateRefreshToken(payload);
+
+    await db.insert(refreshTokens).values({
+        userId: createdUser.id,
+        token_hash: refreshToken,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        isRevoked: 0,
+    });
+
+    return {
+        accessToken,
+        refreshToken,
+        userId: createdUser.id,
+        email: createdUser.email,
+        name: createdUser.name,
+    };
 }
 
 // --- User Login ---
