@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from './context/AuthContext';
 
 type Job = {
     id: number;
@@ -22,13 +23,20 @@ export default function JobReviewPage({ navigate }: JobReviewPageProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    const { getAuthHeaders } = useAuth();
+
     const fetchJobs = async () => {
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetch('/api/v3/jobs');
+            const response = await fetch('/api/v3/jobs', {
+                headers: {
+                    ...getAuthHeaders(),
+                },
+            });
             if (!response.ok) {
-                throw new Error('Failed to fetch jobs.');
+                const errorData = await response.json().catch(() => null);
+                throw new Error(errorData?.error || 'Failed to fetch jobs.');
             }
             const data: Job[] = await response.json();
             setJobs(data);
@@ -48,11 +56,15 @@ export default function JobReviewPage({ navigate }: JobReviewPageProps) {
         try {
             const response = await fetch(`/api/v3/jobs/${id}/status`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...getAuthHeaders(),
+                },
                 body: JSON.stringify({ status: newStatus }),
             });
             if (!response.ok) {
-                throw new Error('Failed to update job status.');
+                const errorData = await response.json().catch(() => null);
+                throw new Error(errorData?.error || 'Failed to update job status.');
             }
             fetchJobs();
         } catch (err: any) {
