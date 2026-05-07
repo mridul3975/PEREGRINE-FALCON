@@ -8,6 +8,13 @@
       "when": 1778003171812,
       "tag": "0000_aromatic_risque",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1778138482070,
+      "tag": "0001_deep_maggott",
+      "breakpoints": true
     }
   ]
 }

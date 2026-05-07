@@ -23,3 +23,13 @@ export const tailoredResumes = sqliteTable('tailored_resumes', {
     createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
     updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
 });
+
+export const users = sqliteTable('users', {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    email: text('email').unique().notNull(), // Unique email for login
+    passwordHash: text('password_hash').notNull(), // Store hashed password, NOT plain text!
+    name: text('name'), // User's display name
+    // Add other profile fields if needed, e.g., resume storage, preferred tech stack, etc.
+    createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
+});
