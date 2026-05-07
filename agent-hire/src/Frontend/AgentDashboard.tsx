@@ -32,25 +32,55 @@ export default function AgentDashboard({ navigate }: AgentDashboardProps) {
 
         const result: ParsedJob = {};
 
+        const normalizeKey = (key: string) =>
+            key
+                .trim()
+                .replace(/^['"]+|['"]+$/g, '')
+                .toLowerCase()
+                .replace(/\s+/g, '_');
+
+        const normalizeValue = (value: unknown) =>
+            String(value)
+                .trim()
+                .replace(/^['"]+|['"]+$/g, '')
+                .replace(/,$/, '');
+
         for (const line of lines) {
-            const kvMatch = line.match(/^\s*([A-Za-z ]+?)\s*(?:[:=]|\-\s)\s*(.+)$/);
+            const trimmedLine = line.replace(/,$/, '').trim();
+
+            if (trimmedLine.includes(':')) {
+                try {
+                    const parsed = JSON5.parse(`{${trimmedLine}}`);
+                    if (parsed && typeof parsed === 'object') {
+                        for (const [rawKey, rawValue] of Object.entries(parsed)) {
+                            const key = normalizeKey(rawKey);
+                            result[key] = normalizeValue(rawValue);
+                        }
+                        continue;
+                    }
+                } catch {
+                    // fallback to non-JSON parsing
+                }
+            }
+
+            const kvMatch = trimmedLine.match(/^\s*["']?([A-Za-z0-9 _-]+?)["']?\s*(?:[:=]|\-\s)\s*(.+)$/);
             if (kvMatch !== null && kvMatch[1] && kvMatch[2]) {
-                const key = kvMatch[1].trim().toLowerCase().replace(/\s+/g, '_');
-                result[key] = kvMatch[2].trim();
+                const key = normalizeKey(kvMatch[1]);
+                result[key] = normalizeValue(kvMatch[2]);
                 continue;
             }
 
-            const lower = line.toLowerCase();
+            const lower = trimmedLine.toLowerCase();
             if (lower.startsWith('title')) {
-                result.title = line.split(/[:=]/).slice(1).join(':').trim();
+                result.title = trimmedLine.split(/[:=]/).slice(1).join(':').trim();
                 continue;
             }
             if (lower.startsWith('company')) {
-                result.company = line.split(/[:=]/).slice(1).join(':').trim();
+                result.company = trimmedLine.split(/[:=]/).slice(1).join(':').trim();
                 continue;
             }
             if (lower.startsWith('summary') || lower.startsWith('description') || lower.startsWith('jobdescription')) {
-                result.summary = line.split(/[:=]/).slice(1).join(':').trim();
+                result.summary = trimmedLine.split(/[:=]/).slice(1).join(':').trim();
                 continue;
             }
         }

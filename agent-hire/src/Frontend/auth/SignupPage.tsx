@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 
 type RegisterPageProps = {
     navigate: (to: string) => void;
 };
 
 export default function RegisterPage({ navigate }: RegisterPageProps) {
+    const { login } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
@@ -28,7 +30,9 @@ export default function RegisterPage({ navigate }: RegisterPageProps) {
                 throw new Error(errorData.error || 'Registration failed.');
             }
 
-            navigate('/login');
+            const data = await response.json();
+            login(data.accessToken, data.refreshToken, data.userId, data.email, data.name);
+            navigate('/');
         } catch (err: any) {
             setError(err.message);
         } finally {

@@ -8,6 +8,7 @@ export const discoveredJobs = sqliteTable('discovered_jobs', {
     company: text('company').notNull(),
     summary: text('summary').notNull(),
     status: text('status', { enum: ['pending_review', 'good_match', 'bad_match', 'applied'] }).default('pending_review').notNull(),
+    userId: integer('user_id').notNull(),
     aiAnalysis: text('ai_analysis'),
     tailoredResumeSection: text('tailored_resume_section'),
     applicationNote: text('application_note'),
