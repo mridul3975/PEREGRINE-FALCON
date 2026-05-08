@@ -41,55 +41,104 @@ export default function RegisterPage({ navigate }: RegisterPageProps) {
     };
 
     return (
-        <div className="flex justify-center items-center min-h-screen bg-gray-100">
-            <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-                <h1 className="text-2xl font-bold mb-6 text-center">Register for AgentHire</h1>
-                <form onSubmit={handleSubmit}>
-                    <div className="mb-4">
-                        <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
-                        <input
-                            id="name"
-                            type="text"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            className="mt-1 p-2 w-full border rounded-md"
-                            placeholder="Your full name"
-                        />
+        <div className="min-h-screen w-full bg-[#06080d] text-[#e8ecf5]">
+            <div className="mx-auto grid min-h-screen max-w-[1400px] grid-cols-1 lg:grid-cols-[1.04fr_1fr]">
+                <section className="relative hidden overflow-hidden border-r border-white/10 lg:flex">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(26,41,76,0.45)_0%,_rgba(7,10,18,0.98)_68%)]" />
+                    <div className="absolute inset-0 opacity-30 [background:repeating-radial-gradient(circle_at_25%_55%,rgba(40,64,120,0.16),rgba(40,64,120,0.16)_2px,transparent_3px,transparent_22px)]" />
+                    <div className="relative z-10 flex w-full flex-col justify-center px-20">
+                        <div className="mb-10 flex items-center gap-3">
+                            <span className="inline-flex h-6 w-6 items-center justify-center rounded-sm border border-white/50">
+                                <span className="h-2.5 w-2.5 rotate-45 border border-white/70" />
+                            </span>
+                            <p className="tracking-[0.24em] text-[#dce4f4]">AGENTHIRE</p>
+                        </div>
+                        <h1 className="max-w-lg text-6xl font-semibold leading-[1.04] tracking-[-0.02em] text-white">
+                            Algorithmic Talent Acquisition
+                        </h1>
+                        <p className="mt-8 max-w-xl text-2xl leading-relaxed text-[#d5deef]">
+                            Deploy intelligence layers to automate technical evaluation. Our laboratory-grade engine parses
+                            complex engineering signals to match hyper-specific agent roles with surgical precision.
+                        </p>
+                        <div className="mt-16 grid max-w-xl grid-cols-2 border-t border-white/10 pt-6 text-lg">
+                            <div>
+                                <p className="text-sm font-semibold uppercase tracking-[0.14em] text-[#b7c4de]">Architecture</p>
+                                <p className="mt-2 text-[#eef3ff]">Neural matching protocols.</p>
+                            </div>
+                            <div>
+                                <p className="text-sm font-semibold uppercase tracking-[0.14em] text-[#b7c4de]">Efficiency</p>
+                                <p className="mt-2 text-[#eef3ff]">4ms latency on vetting.</p>
+                            </div>
+                        </div>
                     </div>
-                    <div className="mb-4">
-                        <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-                        <input
-                            id="email"
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="mt-1 p-2 w-full border rounded-md"
-                            required
-                        />
+                </section>
+
+                <section className="flex items-center justify-center px-6 py-10 sm:px-10 lg:px-16">
+                    <div className="w-full max-w-[520px]">
+                        <h2 className="text-5xl font-semibold leading-tight text-white">Provision Operator</h2>
+                        <p className="mt-3 text-xl text-[#c0cbde]">Create secure access to the intelligence terminal.</p>
+
+                        <form onSubmit={handleSubmit} className="mt-12 space-y-7">
+                            <div>
+                                <label htmlFor="name" className="mb-2 block text-sm font-semibold uppercase tracking-[0.14em] text-[#c0cde3]">
+                                    Operator Name
+                                </label>
+                                <input
+                                    id="name"
+                                    type="text"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    className="h-16 w-full border border-white/15 bg-[#0b0f16] px-5 text-lg text-white outline-none placeholder:text-[#5f6e85] focus:border-[#5f7dac]"
+                                    placeholder="Jane Falcon"
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="email" className="mb-2 block text-sm font-semibold uppercase tracking-[0.14em] text-[#c0cde3]">
+                                    Terminal Identifier (Email)
+                                </label>
+                                <input
+                                    id="email"
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="h-16 w-full border border-white/15 bg-[#0b0f16] px-5 text-lg text-white outline-none placeholder:text-[#5f6e85] focus:border-[#5f7dac]"
+                                    placeholder="operator@agenthire.ai"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="password" className="mb-2 block text-sm font-semibold uppercase tracking-[0.14em] text-[#c0cde3]">
+                                    Access Key (Password)
+                                </label>
+                                <input
+                                    id="password"
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="h-16 w-full border border-white/15 bg-[#0b0f16] px-5 text-lg text-white outline-none placeholder:text-[#5f6e85] focus:border-[#5f7dac]"
+                                    required
+                                />
+                            </div>
+
+                            {error && <p className="text-sm text-[#ff7d7d]">{error}</p>}
+
+                            <button
+                                type="submit"
+                                className="h-16 w-full bg-[#273142] text-lg font-semibold uppercase tracking-[0.08em] text-[#e9effc] transition hover:bg-[#314059] disabled:opacity-60"
+                                disabled={isLoading}
+                            >
+                                {isLoading ? 'Provisioning...' : 'Provision Account'}
+                            </button>
+
+                            <div className="border-t border-white/15 pt-7 text-[15px] text-[#c0cbde]">
+                                Already terminal operator?{' '}
+                                <button type="button" onClick={() => navigate('/login')} className="font-medium text-[#f6f9ff]">
+                                    Initialize session
+                                </button>
+                            </div>
+                        </form>
                     </div>
-                    <div className="mb-6">
-                        <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
-                        <input
-                            id="password"
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="mt-1 p-2 w-full border rounded-md"
-                            required
-                        />
-                    </div>
-                    {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-                    <button
-                        type="submit"
-                        className="w-full bg-green-600 text-white p-2 rounded-md hover:bg-green-700 disabled:bg-green-300"
-                        disabled={isLoading}
-                    >
-                        {isLoading ? 'Registering...' : 'Register'}
-                    </button>
-                    <p className="mt-4 text-center text-sm text-gray-600">
-                        Already have an account? <button type="button" onClick={() => navigate('/login')} className="text-green-600 hover:underline">Login here</button>
-                    </p>
-                </form>
+                </section>
             </div>
         </div>
     );
