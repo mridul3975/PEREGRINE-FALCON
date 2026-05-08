@@ -1,4 +1,3 @@
-// src/auth/auth.ts
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { db } from '../db/connection';
@@ -186,3 +185,32 @@ export async function refreshAccessToken(oldToken: string) {
 
     return { accessToken, refreshToken: newRefreshTokenString };
 }
+
+export async functionn findOrCreateGoogleUser(profile:{ email: string; name?: string }) {
+    const  { email, name } = profile;
+
+    const existingUser = await db.select().from(users).where(eq(users.email, email)).limit(1);
+    let user = existingUser[0];
+
+    if (!user) {
+        const result = await db.insert(users).values({
+            email,
+            name,
+            passwordHash: await hashPassword(profile.sub),
+         }).returning({id: users.id, email: users.email, name: users.name});
+        user = result[0];
+    }
+
+    const payload = { userId: user.id, email: user.email };
+    const accessToken = generateAccessToken(payload);
+    const refreshToken = generateRefreshToken(payload);
+
+    await db.insert(refreshTokens).values({
+        userId: user.id,
+        token_hash: refreshToken,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        isRevoked: 0,
+    });
+    return { accessToken, refreshToken, userId: user.id, email: user.email, name: user.name };
+    // No password for OAuth users
+

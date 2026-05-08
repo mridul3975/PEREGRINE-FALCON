@@ -291,7 +291,7 @@ export default function AgentDashboard({ navigate }: AgentDashboardProps) {
                     <section className="rounded-3xl border border-white/10 bg-[#0b0f16] p-6 shadow-xl shadow-black/20">
                         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                             <div>
-                                <p className="text-xs uppercase tracking-[0.3em] text-[#9fb0cd]">Phase 2: Tailoring Engine</p>
+                                
                                 <h2 className="mt-3 text-2xl uppercase tracking-[0.25em] text-white">JOB-PROFILE ALIGNMENT</h2>
                             </div>
                             <div className="rounded-full bg-[#273142] px-4 py-2 text-xs uppercase tracking-[0.24em] text-[#d8e1f3]">Tailoring Mode</div>
@@ -396,8 +396,7 @@ export default function AgentDashboard({ navigate }: AgentDashboardProps) {
                     <section className="rounded-3xl border border-white/10 bg-[#0b0f16] p-6 shadow-xl shadow-black/20">
                         <div className="flex flex-wrap items-center justify-between gap-3">
                             <div>
-                                <p className="text-xs uppercase tracking-[0.24em] text-[#9fb0cd]">Autonomous Job Processing</p>
-                                <h3 className="mt-2 uppercase tracking-[0.25em] text-2xl text-white">JOB SUMMARIES</h3>
+                                                                <h3 className="mt-2 uppercase tracking-[0.25em] text-2xl text-white">JOB SUMMARIES</h3>
                             </div>
                             <span className="rounded-full bg-[#273142] px-3 py-1 text-xs uppercase tracking-[0.24em] text-[#d8e1f3]">Processing Mode: High</span>
                         </div>

@@ -192,6 +192,41 @@ const server = Bun.serve({
             }
         }
 
+        if (req.method === 'GET' && url.pathname === '/api/auth/google/login') {
+  const params = new URLSearchParams({
+    client_id: process.env.GOOGLE_CLIENT_ID!,
+    redirect_uri: process.env.GOOGLE_REDIRECT_URI!,
+    response_type: 'code',
+    scope: 'openid email profile',
+    access_type: 'offline',
+    prompt: 'consent',
+  });
+  return Response.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`, 302);
+}
+
+
+if (req.method === 'GET' && url.pathname === '/api/auth/google/callback') {
+  const code = url.searchParams.get('code');
+  if (!code) return new Response('Missing code', { status: 400 });
+
+  const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      code,
+      client_id: process.env.GOOGLE_CLIENT_ID!,
+      client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+      redirect_uri: process.env.GOOGLE_REDIRECT_URI!,
+      grant_type: 'authorization_code',
+    }),
+  });
+  const tokenJson = await tokenRes.json();
+  const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+    headers: { Authorization: `Bearer ${tokenJson.access_token}` },
+  });
+  const profile = await userInfoRes.json();
+  // profile.email, profile.name, profile.sub
+}
 
         return new Response('Not Found', { status: 404 });
     },
