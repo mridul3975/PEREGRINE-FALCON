@@ -19,7 +19,7 @@ export default function App() {
 
     useEffect(() => {
         if (!auth.isHydrated) return;
-        if (!auth.isAuthenticated && path !== '/login' && path !== '/register') {
+        if (!auth.isAuthenticated && path !== '/login' && path !== '/register' && path !== '/google-callback') {
             window.history.replaceState({}, '', '/login');
             setPath('/login');
         }
@@ -38,6 +38,10 @@ export default function App() {
 
     if (!auth.isHydrated) {
         return null;
+    }
+
+    if (path === '/google-callback') {
+        return <GoogleCallbackPage navigate={navigate} />;
     }
 
     if (!auth.isAuthenticated) {
