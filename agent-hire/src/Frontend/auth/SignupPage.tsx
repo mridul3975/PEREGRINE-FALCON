@@ -75,13 +75,13 @@ export default function RegisterPage({ navigate }: RegisterPageProps) {
 
                 <section className="flex items-center justify-center px-6 py-10 sm:px-10 lg:px-16">
                     <div className="w-full max-w-[520px]">
-                        <h2 className="text-5xl font-semibold leading-tight text-white">Provision Operator</h2>
-                        <p className="mt-3 text-xl text-[#c0cbde]">Create secure access to the intelligence terminal.</p>
+                        <h2 className="text-5xl tracking-[0.15em] text-[#dce4f4] leading-tight text-white">SignUp</h2>
+                        
 
                         <form onSubmit={handleSubmit} className="mt-12 space-y-7">
                             <div>
                                 <label htmlFor="name" className="mb-2 block text-sm font-semibold uppercase tracking-[0.14em] text-[#c0cde3]">
-                                    Operator Name
+                                Name
                                 </label>
                                 <input
                                     id="name"
@@ -94,7 +94,7 @@ export default function RegisterPage({ navigate }: RegisterPageProps) {
                             </div>
                             <div>
                                 <label htmlFor="email" className="mb-2 block text-sm font-semibold uppercase tracking-[0.14em] text-[#c0cde3]">
-                                    Terminal Identifier (Email)
+                                    Email
                                 </label>
                                 <input
                                     id="email"
@@ -102,13 +102,13 @@ export default function RegisterPage({ navigate }: RegisterPageProps) {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     className="h-16 w-full border border-white/15 bg-[#0b0f16] px-5 text-lg text-white outline-none placeholder:text-[#5f6e85] focus:border-[#5f7dac]"
-                                    placeholder="operator@agenthire.ai"
+                                    placeholder="example@abc.com"
                                     required
                                 />
                             </div>
                             <div>
                                 <label htmlFor="password" className="mb-2 block text-sm font-semibold uppercase tracking-[0.14em] text-[#c0cde3]">
-                                    Access Key (Password)
+                                    Password
                                 </label>
                                 <input
                                     id="password"
@@ -116,6 +116,7 @@ export default function RegisterPage({ navigate }: RegisterPageProps) {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     className="h-16 w-full border border-white/15 bg-[#0b0f16] px-5 text-lg text-white outline-none placeholder:text-[#5f6e85] focus:border-[#5f7dac]"
+                                    placeholder="Enter a strong password"
                                     required
                                 />
                             </div>
@@ -127,13 +128,34 @@ export default function RegisterPage({ navigate }: RegisterPageProps) {
                                 className="h-16 w-full bg-[#273142] text-lg font-semibold uppercase tracking-[0.08em] text-[#e9effc] transition hover:bg-[#314059] disabled:opacity-60"
                                 disabled={isLoading}
                             >
-                                {isLoading ? 'Provisioning...' : 'Provision Account'}
+                                {isLoading ? 'Provisioning...' : 'SIGNUP'}
                             </button>
 
+                            <div className="flex items-center gap-4 pt-2 text-sm uppercase tracking-[0.12em] text-[#94a3bf]">
+                                <div className="h-px flex-1 bg-white/15" />
+                                <span>or</span>
+                                <div className="h-px flex-1 bg-white/15" />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <button type="button" className="h-12 border border-white/20 text-sm font-semibold uppercase tracking-[0.08em] text-[#e1e8f6]">
+                                    SSO
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        window.location.href = '/api/auth/google/login';
+                                    }}
+                                    className="h-12 border border-white/20 text-sm font-semibold uppercase tracking-[0.08em] text-[#e1e8f6]"
+                                >
+                                    Sign up with Google
+                                </button>
+                            </div>
+
                             <div className="border-t border-white/15 pt-7 text-[15px] text-[#c0cbde]">
-                                Already terminal operator?{' '}
+                                Already have an account?{' '}
                                 <button type="button" onClick={() => navigate('/login')} className="font-medium text-[#f6f9ff]">
-                                    Initialize session
+                                    Login
                                 </button>
                             </div>
                         </form>

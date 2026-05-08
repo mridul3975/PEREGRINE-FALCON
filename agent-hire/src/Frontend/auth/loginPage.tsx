@@ -118,7 +118,7 @@ export default function LoginPage({ navigate }: LoginPageProps) {
                                 className="h-16 w-full bg-[#273142] text-lg font-semibold uppercase tracking-[0.08em] text-[#e9effc] transition hover:bg-[#314059] disabled:opacity-60"
                                 disabled={isLoading}
                             >
-                                {isLoading ? 'Initializing...' : 'Initialize Session'}
+                                {isLoading ? 'Initializing...' : 'Login'}
                             </button>
 
                             <div className="flex items-center gap-4 pt-2 text-sm uppercase tracking-[0.12em] text-[#94a3bf]">
@@ -131,15 +131,20 @@ export default function LoginPage({ navigate }: LoginPageProps) {
                                 <button type="button" className="h-12 border border-white/20 text-sm font-semibold uppercase tracking-[0.08em] text-[#e1e8f6]">
                                     SSO
                                 </button>
-                                <button type="button" className="h-12 border border-white/20 text-sm font-semibold uppercase tracking-[0.08em] text-[#e1e8f6]">
-                                    MFA
+                                <button type="button" 
+                                onClick={() => {
+    window.location.href = '/api/auth/google/login';
+  }}
+                                className="h-12 border border-white/20 text-sm font-semibold uppercase tracking-[0.08em] text-[#e1e8f6]">
+                                      Sign in with Google
+
                                 </button>
                             </div>
 
                             <div className="border-t border-white/15 pt-7 text-[15px] text-[#c0cbde]">
-                                New terminal operator?{' '}
+                                Don't have an account yet?{' '}
                                 <button type="button" onClick={() => navigate('/register')} className="font-medium text-[#f6f9ff]">
-                                    Provision account
+                                    SignUp
                                 </button>
                             </div>
                         </form>
