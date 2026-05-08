@@ -236,18 +236,37 @@ export default function AgentDashboard({ navigate }: AgentDashboardProps) {
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to process jobs.');
+                let errorText = 'Failed to process jobs.';
+                try {
+                    const errorData = await response.json();
+                    errorText = errorData.error || errorText;
+                } catch {
+                    const rawText = await response.text();
+                    if (rawText) {
+                        errorText = rawText;
+                    }
+                }
+                throw new Error(errorText);
             }
 
-            const data = await response.json();
+            let data;
+            try {
+                data = await response.json();
+            } catch {
+                throw new Error('Received invalid JSON from the server. Is the backend running on port 3000?');
+            }
+
             setProcessedJobIds(data.newJobIds);
             setAgentResponse(`Successfully sent ${data.newJobIds.length} jobs for autonomous processing.`); // Update the main response display
             await fetchDashboardJobs();
 
         } catch (err: any) {
-            setError(err.message || "Failed to process jobs.");
-            console.error("Frontend error processing jobs:", err);
+            let message = err.message || 'Failed to process jobs.';
+            if (message.includes('Failed to fetch') || message.includes('ECONNREFUSED')) {
+                message = 'Could not reach the backend on http://localhost:3000. Start the Bun server and retry.';
+            }
+            setError(message);
+            console.error('Frontend error processing jobs:', err);
         } finally {
             setIsLoading(false);
         }

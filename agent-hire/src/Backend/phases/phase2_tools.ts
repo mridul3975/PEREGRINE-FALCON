@@ -29,12 +29,32 @@ export const tailoringTools = {
 
             const result = await generateText({
                 model: openrouter('openai/gpt-3.5-turbo'),
-                system: `You are a resume tailoring assistant. Analyze the provided resume and job description, and return the improved resume text directly.
-                Your response should contain the full optimized resume content, focusing on the relevant sections and keywords from the job description. Do not return unrelated advice or metadata.`,
+                system: `You are a senior technical resume writer. Rewrite the resume to be fully optimized for the provided job description.
+                Use the job description to select relevant keywords, metrics, and accomplishments. Return only the rewritten resume text in markdown.
+                Include these sections when possible: Professional Summary, Work Experience, Projects, Skills, Technical Skills, Certifications, and Education (optional).
+                Make the resume results-oriented, ATS-friendly, and aligned to the target role. Do not include analysis, explanations, or commentary.`,
                 messages: [
                     {
                         role: 'user',
-                        content: `Resume:\n${fullResumeData}\n\nJob Description:\n${jobDescription}`,
+                        content: `Act as an expert technical resume writer. Based on the job description below for a [Job Title] at [Company Name], rewrite my current resume to be more impactful and better tailored to this role.
+
+Optimize for ATS: Incorporate keywords naturally from the job description.
+
+Professional Summary: Create a 3-4 sentence summary highlighting years of experience, key skills, and top achievements relevant to this role.
+
+Work Experience: Rewrite bullet points to be results-oriented rather than task-oriented. Use strong action verbs and include metrics/numbers to quantify achievements.
+
+Projects: If the resume contains project experience, convert it into a clear projects section with outcomes and relevant technologies.
+
+Skills Section: Create a section highlighting key technical skills and tools from the job description.
+
+Education: Include an education section if it exists, otherwise omit it.
+
+Target Job Description:
+${jobDescription}
+
+My Current Resume:
+${fullResumeData}`,
                     },
                 ],
             });
