@@ -4,6 +4,8 @@ import JobReviewPage from './JobReviewPage';
 import LoginPage from './auth/loginPage';
 import RegisterPage from './auth/SignupPage';
 import { useAuth } from './context/AuthContext';
+import GoogleCallbackPage from './auth/GoogleCallbackPage';
+
 
 export default function App() {
     const [path, setPath] = useState(window.location.pathname);
@@ -57,6 +59,8 @@ export default function App() {
     if (path === '/login') {
         return <LoginPage navigate={navigate} />;
     }
+
+    if (path === '/google-callback') return <GoogleCallbackPage navigate={navigate} />;
 
     return <AgentDashboard navigate={navigate} />;
 }
