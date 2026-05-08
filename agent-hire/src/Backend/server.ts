@@ -3,7 +3,7 @@ import { analyzeJobMatch } from './phases/phase1_puppet';
 import { runAgentWithTools } from './phases/phase2_agent';
 import { orchestrateJobProcessing, type IncomingJobSummary } from './phases/phase3_orchestrator';
 import { authMiddleware } from '../middleware/authmiddleware';
-import { SignupUser, loginUser, refreshAccessToken } from '../auth/auth';
+import { SignupUser, loginUser, refreshAccessToken, findOrCreateGoogleUser } from '../auth/auth';
 config();
 import { discoveredJobs } from '../db/schema';
 import { db } from '../db/connection';
@@ -13,6 +13,12 @@ const server = Bun.serve({
     port: 3000,
     async fetch(req: Request) {
         const url = new URL(req.url);
+        const defaultGoogleRedirectUri = `${url.origin}/api/auth/google/callback`;
+        const googleRedirectUriFromEnv = process.env.GOOGLE_REDIRECT_URI?.trim();
+        const effectiveGoogleRedirectUri =
+            googleRedirectUriFromEnv && !googleRedirectUriFromEnv.includes('localhost:5173')
+                ? googleRedirectUriFromEnv
+                : defaultGoogleRedirectUri;
 
         if (url.pathname.startsWith('/api/') && !url.pathname.startsWith('/api/auth')) {
             const authResponse = await authMiddleware(req);
@@ -193,42 +199,54 @@ const server = Bun.serve({
         }
 
         if (req.method === 'GET' && url.pathname === '/api/auth/google/login') {
-  const params = new URLSearchParams({
-    client_id: process.env.GOOGLE_CLIENT_ID!,
-    redirect_uri: process.env.GOOGLE_REDIRECT_URI!,
-    response_type: 'code',
-    scope: 'openid email profile',
-    access_type: 'offline',
-    prompt: 'consent',
-  });
-  return Response.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`, 302);
-}
+            const params = new URLSearchParams({
+                client_id: process.env.GOOGLE_CLIENT_ID!,
+                redirect_uri: effectiveGoogleRedirectUri,
+                response_type: 'code',
+                scope: 'openid email profile',
+                access_type: 'offline',
+                prompt: 'consent',
+            });
+            return Response.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`, 302);
+        }
 
+        if (req.method === 'GET' && url.pathname === '/api/auth/google/callback') {
+            const code = url.searchParams.get('code');
+            if (!code) return new Response('Missing code', { status: 400 });
 
-if (req.method === 'GET' && url.pathname === '/api/auth/google/callback') {
-  const code = url.searchParams.get('code');
-  if (!code) return new Response('Missing code', { status: 400 });
+            const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({
+                    code,
+                    client_id: process.env.GOOGLE_CLIENT_ID!,
+                    client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+                    redirect_uri: effectiveGoogleRedirectUri,
+                    grant_type: 'authorization_code',
+                }),
+            });
+            const tokenJson = await tokenRes.json();
+            const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                headers: { Authorization: `Bearer ${tokenJson.access_token}` },
+            });
+            const profile = await userInfoRes.json();
 
-  const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      code,
-      client_id: process.env.GOOGLE_CLIENT_ID!,
-      client_secret: process.env.GOOGLE_CLIENT_SECRET!,
-      redirect_uri: process.env.GOOGLE_REDIRECT_URI!,
-      grant_type: 'authorization_code',
-    }),
-  });
-  const tokenJson = await tokenRes.json();
-  const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-    headers: { Authorization: `Bearer ${tokenJson.access_token}` },
-  });
-  const profile = await userInfoRes.json();
-  // profile.email, profile.name, profile.sub
-}
+            const result = await findOrCreateGoogleUser({
+                email: profile.email,
+                name: profile.name,
+                sub: profile.sub,
+            });
 
-        return new Response('Not Found', { status: 404 });
+            const params = new URLSearchParams({
+                accessToken: result.accessToken,
+                refreshToken: result.refreshToken,
+                userId: result.userId.toString(),
+                email: result.email,
+                name: result.name || '',
+            });
+
+            return Response.redirect(`http://localhost:5173/google-callback?${params.toString()}`, 302);
+        }
     },
 });
 

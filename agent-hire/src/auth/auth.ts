@@ -186,8 +186,8 @@ export async function refreshAccessToken(oldToken: string) {
     return { accessToken, refreshToken: newRefreshTokenString };
 }
 
-export async functionn findOrCreateGoogleUser(profile:{ email: string; name?: string }) {
-    const  { email, name } = profile;
+export async function findOrCreateGoogleUser(profile: { email: string; name?: string; sub: string }) {
+    const { email, name, sub } = profile;
 
     const existingUser = await db.select().from(users).where(eq(users.email, email)).limit(1);
     let user = existingUser[0];
@@ -196,8 +196,8 @@ export async functionn findOrCreateGoogleUser(profile:{ email: string; name?: st
         const result = await db.insert(users).values({
             email,
             name,
-            passwordHash: await hashPassword(profile.sub),
-         }).returning({id: users.id, email: users.email, name: users.name});
+            passwordHash: await hashPassword(sub),
+        }).returning({ id: users.id, email: users.email, name: users.name });
         user = result[0];
     }
 
@@ -211,6 +211,7 @@ export async functionn findOrCreateGoogleUser(profile:{ email: string; name?: st
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
         isRevoked: 0,
     });
+
     return { accessToken, refreshToken, userId: user.id, email: user.email, name: user.name };
-    // No password for OAuth users
+}
 
