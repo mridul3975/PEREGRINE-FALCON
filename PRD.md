@@ -10,6 +10,7 @@
 *   **Core Task:** A React UI where the user inputs a Resume and a Job Description. On click, the AI returns a % match score and a list of missing keywords.
 *   **What you learn:** API authentication, streaming responses, and basic prompt engineering.
 *   **Tech:** React (State management), Bun (API routes), OpenAI/Claude API.
+*   **Auth:** JWT-based login with access tokens and refresh tokens, secure session persistence, and protected backend routes.
 
 ### Phase 2: The Tool-User (Function Calling)
 *   **Core Task:** The AI is given a "Tool" (a JavaScript function) that it can choose to run. For example, a tool that fetches the current date or calculates a specific salary conversion.
