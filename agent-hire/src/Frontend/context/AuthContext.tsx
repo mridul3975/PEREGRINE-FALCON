@@ -66,7 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         window.history.replaceState({}, '', '/login');
     };
 
-    const getAuthHeaders = () => {
+    const getAuthHeaders = (): Record<string, string> => {
         if (!accessToken) return {};
         return { Authorization: `Bearer ${accessToken}` };
     };
