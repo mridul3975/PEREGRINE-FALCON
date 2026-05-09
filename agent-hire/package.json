@@ -1,32 +1,21 @@
 {
   "name": "agent-hire",
-  "module": "index.ts",
   "type": "module",
   "private": true,
+  "workspaces": ["src/Frontend"],
   "scripts": {
     "dev": "bun run src/Backend/server.ts",
     "start": "bun run src/Backend/server.ts",
-    "dev:frontend": "vite",
-    "build:frontend": "vite build",
-    "preview:frontend": "vite preview"
+    "dev:frontend": "cd src/Frontend && bun run dev",
+    "build:frontend": "cd src/Frontend && bun run build",
+    "preview:frontend": "cd src/Frontend && bun run preview"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.2.4",
     "@types/bcrypt": "^6.0.0",
     "@types/bun": "latest",
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
-    "@types/react-router-dom": "^5.3.3",
-    "@vitejs/plugin-react": "^6.0.1",
-    "autoprefixer": "^10.5.0",
-    "drizzle-kit": "^0.31.10",
-    "postcss": "^8.5.13",
-    "tailwindcss": "^4.2.4",
-    "vite": "^8.0.10"
-  },
-  "peerDependencies": {
-    "typescript": "^6.0.3"
+    "@types/node": "^25.6.0",
+    "drizzle-kit": "^0.31.10"
   },
   "dependencies": {
     "@ai-sdk/gateway": "^3.0.109",
@@ -34,17 +23,12 @@
     "@ai-sdk/groq": "^3.0.38",
     "@ai-sdk/openai": "^3.0.60",
     "@libsql/client": "^0.17.3",
-    "@types/node": "^25.6.0",
     "ai": "^6.0.175",
     "bcrypt": "^6.0.0",
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
     "json5": "^2.2.3",
     "jsonwebtoken": "^9.0.3",
-    "react": "^19.2.5",
-    "react-dom": "^19.2.5",
-    "tsx": "^4.21.0",
-    "types": "^0.1.1",
     "zod": "^4.4.2"
   }
 }
