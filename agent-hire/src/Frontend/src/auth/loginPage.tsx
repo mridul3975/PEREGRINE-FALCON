@@ -1,6 +1,7 @@
 // frontend/auth/LoginPage.tsx
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { buildApiUrl } from '../utils/api';
 
 type LoginPageProps = {
     navigate: (to: string) => void;
@@ -19,7 +20,7 @@ export default function LoginPage({ navigate }: LoginPageProps) {
         setError(null);
 
         try {
-            const response = await fetch('/api/auth/login', {
+            const response = await fetch(buildApiUrl('/api/auth/login'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
@@ -133,8 +134,8 @@ export default function LoginPage({ navigate }: LoginPageProps) {
                                 </button>
                                 <button type="button" 
                                 onClick={() => {
-    window.location.href = '/api/auth/google/login';
-  }}
+                                    window.location.href = buildApiUrl('/api/auth/google/login');
+                                }}
                                 className="h-12 border border-white/20 text-sm font-semibold uppercase tracking-[0.08em] text-[#e1e8f6]">
                                       Sign in with Google
 

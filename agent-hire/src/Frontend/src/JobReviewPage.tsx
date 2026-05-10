@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from './context/AuthContext';
+import { buildApiUrl } from './utils/api';
 
 type Job = {
     id: number;
@@ -29,7 +30,7 @@ export default function JobReviewPage({ navigate }: JobReviewPageProps) {
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetch('/api/v3/jobs', {
+            const response = await fetch(buildApiUrl('/api/v3/jobs'), {
                 headers: {
                     ...getAuthHeaders(),
                 },
@@ -54,7 +55,7 @@ export default function JobReviewPage({ navigate }: JobReviewPageProps) {
 
     const updateJobStatus = async (id: number, newStatus: Job['status']) => {
         try {
-            const response = await fetch(`/api/v3/jobs/${id}/status`, {
+            const response = await fetch(buildApiUrl(`/api/v3/jobs/${id}/status`), {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

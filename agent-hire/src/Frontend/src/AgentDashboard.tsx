@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import JSON5 from 'json5';
 import { useAuth } from './context/AuthContext';
+import { buildApiUrl } from './utils/api';
 
 type AgentDashboardProps = {
     navigate: (to: string) => void;
@@ -136,7 +137,7 @@ export default function AgentDashboard({ navigate }: AgentDashboardProps) {
 
     const fetchDashboardJobs = async () => {
         try {
-            const response = await fetch('/api/v3/jobs', {
+            const response = await fetch(buildApiUrl('/api/v3/jobs'), {
                 headers: {
                     ...getAuthHeaders(),
                 },
@@ -162,7 +163,7 @@ export default function AgentDashboard({ navigate }: AgentDashboardProps) {
 
         try {
             console.log('handleTailorResume clicked', { resumeLength: resume.length, jobDescriptionLength: jobDescription.length });
-            const response = await fetch('/api/v2/tailor', {
+            const response = await fetch(buildApiUrl('/api/v2/tailor'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -226,7 +227,7 @@ export default function AgentDashboard({ navigate }: AgentDashboardProps) {
                 return { title, company, summary };
             });
 
-            const response = await fetch('/api/v3/process-jobs', {
+            const response = await fetch(buildApiUrl('/api/v3/process-jobs'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
