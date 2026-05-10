@@ -65,7 +65,7 @@ const server = Bun.serve({
                 }
 
                 const analysisResult = await analyzeJobMatch(resume, jobDescription);
-return jsonWithCors(analysisResult);
+                return jsonWithCors(analysisResult);
 
             } catch (error) {
                 console.error('Error processing /api/v1/analyze request:', error);
