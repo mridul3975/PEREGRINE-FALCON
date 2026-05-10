@@ -238,6 +238,7 @@ export default function AgentDashboard({ navigate }: AgentDashboardProps) {
 
             const rawResponse = await response.text();
             if (!response.ok) {
+                console.error('process-jobs error response:', response.status, rawResponse);
                 let errorText = 'Failed to process jobs.';
                 try {
                     const errorData = JSON.parse(rawResponse);
@@ -254,6 +255,7 @@ export default function AgentDashboard({ navigate }: AgentDashboardProps) {
             try {
                 data = JSON.parse(rawResponse);
             } catch {
+                console.error('process-jobs invalid JSON:', rawResponse);
                 throw new Error('Received invalid JSON from the server. Is the backend running on port 3000?');
             }
 
