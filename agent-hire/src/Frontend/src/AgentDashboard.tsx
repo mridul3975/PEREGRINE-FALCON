@@ -265,8 +265,9 @@ export default function AgentDashboard({ navigate }: AgentDashboardProps) {
 
         } catch (err: any) {
             let message = err.message || 'Failed to process jobs.';
+            const backendUrl = buildApiUrl('/api/v3/process-jobs');
             if (message.includes('Failed to fetch') || message.includes('ECONNREFUSED')) {
-                message = 'Could not reach the backend on http://localhost:3000. Start the Bun server and retry.';
+                message = `Could not reach the backend at ${backendUrl}. Check VITE_API_BASE_URL and your deployed backend configuration.`;
             }
             setError(message);
             console.error('Frontend error processing jobs:', err);
