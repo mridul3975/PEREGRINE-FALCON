@@ -8,7 +8,9 @@
     "start": "bun run src/Backend/server.ts",
     "dev:frontend": "cd src/Frontend && bun run dev",
     "build:frontend": "cd src/Frontend && bun run build",
-    "preview:frontend": "cd src/Frontend && bun run preview"
+    "preview:frontend": "cd src/Frontend && bun run preview",
+    "install": "bun install",
+    "build": "bun vite build"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
