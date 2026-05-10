@@ -7,7 +7,27 @@ import { SignupUser, loginUser, refreshAccessToken, findOrCreateGoogleUser } fro
 config();
 import { discoveredJobs } from '../db/schema';
 import { db } from '../db/connection';
-import { sql, eq } from 'drizzle-orm';
+import { sql, eq, and } from 'drizzle-orm';
+
+const FRONTEND_ORIGIN = process.env.FRONTEND_URL || '*';
+const CORS_HEADERS = {
+    'Access-Control-Allow-Origin': FRONTEND_ORIGIN,
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
+    'Access-Control-Max-Age': '86400',
+};
+
+function withCors(response: Response) {
+    for (const [key, value] of Object.entries(CORS_HEADERS)) {
+        response.headers.set(key, value);
+    }
+    return response;
+}
+
+function jsonWithCors(body: unknown, init?: ResponseInit) {
+    const response = Response.json(body, init);
+    return withCors(response);
+}
 
 const server = Bun.serve({
     port: 3000,
@@ -18,7 +38,11 @@ const server = Bun.serve({
         const effectiveGoogleRedirectUri = googleRedirectUriFromEnv || defaultGoogleRedirectUri;
 
         if (!effectiveGoogleRedirectUri) {
-            return new Response(JSON.stringify({ error: 'No Google redirect URI configured.' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+            return withCors(new Response(JSON.stringify({ error: 'No Google redirect URI configured.' }), { status: 500, headers: { 'Content-Type': 'application/json' } }));
+        }
+
+        if (req.method === 'OPTIONS') {
+            return withCors(new Response(null, { status: 204 }));
         }
 
         if (url.pathname.startsWith('/api/') && !url.pathname.startsWith('/api/auth')) {
@@ -32,21 +56,21 @@ const server = Bun.serve({
             try {
                 if (!process.env.OPENROUTER_API_KEY) {
                     console.error('OPENROUTER_API_KEY is not set.');
-                    return new Response(JSON.stringify({ error: 'Server configuration error: API Key not found.' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+                    return withCors(new Response(JSON.stringify({ error: 'Server configuration error: API Key not found.' }), { status: 500, headers: { 'Content-Type': 'application/json' } }));
                 }
 
                 const { resume, jobDescription } = await req.json();
                 if (typeof resume !== 'string' || typeof jobDescription !== 'string' || !resume || !jobDescription) {
-                    return new Response(JSON.stringify({ error: 'Invalid input: "resume" and "jobDescription" must be non-empty strings.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+                    return withCors(new Response(JSON.stringify({ error: 'Invalid input: "resume" and "jobDescription" must be non-empty strings.' }), { status: 400, headers: { 'Content-Type': 'application/json' } }));
                 }
 
                 const analysisResult = await analyzeJobMatch(resume, jobDescription);
-                return Response.json(analysisResult);
+return jsonWithCors(analysisResult);
 
             } catch (error) {
                 console.error('Error processing /api/v1/analyze request:', error);
                 const errorMessage = error instanceof Error ? error.message : 'Internal Server Error';
-                return new Response(JSON.stringify({ error: errorMessage, details: 'Failed to analyze job match.' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+                return withCors(new Response(JSON.stringify({ error: errorMessage, details: 'Failed to analyze job match.' }), { status: 500, headers: { 'Content-Type': 'application/json' } }));
             }
         }
 
@@ -54,12 +78,12 @@ const server = Bun.serve({
             try {
                 if (!process.env.OPENROUTER_API_KEY) {
                     console.error('OPENROUTER_API_KEY for Phase 2 is not set.');
-                    return new Response(JSON.stringify({ error: 'Server configuration error: API Key not found for tailoring agent.' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+                    return withCors(new Response(JSON.stringify({ error: 'Server configuration error: API Key not found for tailoring agent.' }), { status: 500, headers: { 'Content-Type': 'application/json' } }));
                 }
 
                 const { resume, jobDescription, resumeSectionToTailor } = await req.json();
                 if (typeof resume !== 'string' || typeof jobDescription !== 'string' || !resume || !jobDescription) {
-                    return new Response(JSON.stringify({ error: 'Invalid input: "resume" and "jobDescription" must be non-empty strings.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+                    return withCors(new Response(JSON.stringify({ error: 'Invalid input: "resume" and "jobDescription" must be non-empty strings.' }), { status: 400, headers: { 'Content-Type': 'application/json' } }));
                 }
 
                 const agentResult = await runAgentWithTools(resume, jobDescription);
@@ -68,7 +92,7 @@ const server = Bun.serve({
                     ? toolResults.map((item: any) => item?.output?.optimizedContent ?? item?.output ?? item?.result).find(Boolean)
                     : toolResults?.output?.optimizedContent ?? toolResults?.output ?? toolResults?.result;
 
-                return Response.json({
+                return jsonWithCors({
                     text: agentResult.text,
                     finalMessage: optimizedContent || agentResult.text || '',
                     optimizedContent,
@@ -79,7 +103,7 @@ const server = Bun.serve({
             } catch (error) {
                 console.error('Error processing /api/v2/tailor request:', error);
                 const errorMessage = error instanceof Error ? error.message : 'Internal Server Error';
-                return new Response(JSON.stringify({ error: errorMessage, details: 'Failed to run tailoring agent.' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+                return withCors(new Response(JSON.stringify({ error: errorMessage, details: 'Failed to run tailoring agent.' }), { status: 500, headers: { 'Content-Type': 'application/json' } }));
             }
         }
 
@@ -87,11 +111,11 @@ const server = Bun.serve({
             try {
                 const userData = await req.json();
                 const result = await SignupUser(userData);
-                return Response.json(result);
+                return jsonWithCors(result);
             } catch (error) {
                 console.error('Error processing /api/auth/register request:', error);
                 const errorMessage = error instanceof Error ? error.message : 'Internal Server Error';
-                return new Response(JSON.stringify({ error: errorMessage }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+                return withCors(new Response(JSON.stringify({ error: errorMessage }), { status: 400, headers: { 'Content-Type': 'application/json' } }));
             }
         }
 
@@ -99,11 +123,11 @@ const server = Bun.serve({
             try {
                 const credentials = await req.json();
                 const result = await loginUser(credentials);
-                return Response.json(result);
+                return jsonWithCors(result);
             } catch (error) {
                 console.error('Error processing /api/auth/login request:', error);
                 const errorMessage = error instanceof Error ? error.message : 'Invalid credentials';
-                return new Response(JSON.stringify({ error: errorMessage }), { status: 401, headers: { 'Content-Type': 'application/json' } });
+                return withCors(new Response(JSON.stringify({ error: errorMessage }), { status: 401, headers: { 'Content-Type': 'application/json' } }));
             }
         }
 
@@ -111,14 +135,14 @@ const server = Bun.serve({
             try {
                 const { refreshToken } = await req.json();
                 if (typeof refreshToken !== 'string' || !refreshToken) {
-                    return new Response(JSON.stringify({ error: 'A valid refreshToken is required.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+                    return withCors(new Response(JSON.stringify({ error: 'A valid refreshToken is required.' }), { status: 400, headers: { 'Content-Type': 'application/json' } }));
                 }
                 const tokens = await refreshAccessToken(refreshToken);
-                return Response.json(tokens);
+                return jsonWithCors(tokens);
             } catch (error) {
                 console.error('Error processing /api/auth/refresh request:', error);
                 const errorMessage = error instanceof Error ? error.message : 'Failed to refresh token.';
-                return new Response(JSON.stringify({ error: errorMessage }), { status: 401, headers: { 'Content-Type': 'application/json' } });
+                return withCors(new Response(JSON.stringify({ error: errorMessage }), { status: 401, headers: { 'Content-Type': 'application/json' } }));
             }
         }
 
@@ -128,20 +152,20 @@ const server = Bun.serve({
                 const currentUser = (req as any).user;
 
                 if (!currentUser || typeof currentUser.userId !== 'number') {
-                    return new Response(JSON.stringify({ error: 'Unauthorized user.' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
+                    return withCors(new Response(JSON.stringify({ error: 'Unauthorized user.' }), { status: 401, headers: { 'Content-Type': 'application/json' } }));
                 }
 
                 if (!Array.isArray(jobs) || jobs.length === 0 || !resume || typeof resume !== 'string') {
-                    return new Response(JSON.stringify({ error: 'Invalid input: "jobs" array and "resume" string are required.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+                    return withCors(new Response(JSON.stringify({ error: 'Invalid input: "jobs" array and "resume" string are required.' }), { status: 400, headers: { 'Content-Type': 'application/json' } }));
                 }
 
                 const result = await orchestrateJobProcessing(jobs as IncomingJobSummary[], resume, currentUser.userId);
-                return Response.json({ message: `Successfully initiated processing for ${result.processedCount} jobs.`, newJobIds: result.newJobIds });
+                return jsonWithCors({ message: `Successfully initiated processing for ${result.processedCount} jobs.`, newJobIds: result.newJobIds });
 
             } catch (error) {
                 console.error('Error processing /api/v3/process-jobs request:', error);
                 const errorMessage = error instanceof Error ? error.message : 'Internal Server Error';
-                return new Response(JSON.stringify({ error: errorMessage, details: 'Failed to orchestrate job processing.' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+                return withCors(new Response(JSON.stringify({ error: errorMessage, details: 'Failed to orchestrate job processing.' }), { status: 500, headers: { 'Content-Type': 'application/json' } }));
             }
         }
 
@@ -150,15 +174,15 @@ const server = Bun.serve({
             try {
                 const currentUser = (req as any).user;
                 if (!currentUser || typeof currentUser.userId !== 'number') {
-                    return new Response(JSON.stringify({ error: 'Unauthorized user.' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
+                    return withCors(new Response(JSON.stringify({ error: 'Unauthorized user.' }), { status: 401, headers: { 'Content-Type': 'application/json' } }));
                 }
 
                 const allJobs = await db.select().from(discoveredJobs).where(eq(discoveredJobs.userId, currentUser.userId));
-                return Response.json(allJobs);
+                return jsonWithCors(allJobs);
             } catch (error) {
                 console.error('Error fetching jobs:', error);
                 const errorMessage = error instanceof Error ? error.message : 'Internal Server Error';
-                return new Response(JSON.stringify({ error: errorMessage }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+                return withCors(new Response(JSON.stringify({ error: errorMessage }), { status: 500, headers: { 'Content-Type': 'application/json' } }));
             }
         }
 
@@ -168,34 +192,34 @@ const server = Bun.serve({
             const currentUser = (req as any).user;
 
             if (isNaN(jobId)) {
-                return new Response(JSON.stringify({ error: 'Invalid Job ID.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+                return withCors(new Response(JSON.stringify({ error: 'Invalid Job ID.' }), { status: 400, headers: { 'Content-Type': 'application/json' } }));
             }
 
             if (!currentUser || typeof currentUser.userId !== 'number') {
-                return new Response(JSON.stringify({ error: 'Unauthorized user.' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
+                return withCors(new Response(JSON.stringify({ error: 'Unauthorized user.' }), { status: 401, headers: { 'Content-Type': 'application/json' } }));
             }
 
             try {
                 const { status } = await req.json();
                 const validStatuses = ['pending_review', 'good_match', 'bad_match', 'applied', 'failed_analysis'];
                 if (!validStatuses.includes(status)) {
-                    return new Response(JSON.stringify({ error: `Invalid status provided. Must be one of: ${validStatuses.join(', ')}` }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+                    return withCors(new Response(JSON.stringify({ error: `Invalid status provided. Must be one of: ${validStatuses.join(', ')}` }), { status: 400, headers: { 'Content-Type': 'application/json' } }));
                 }
 
                 const updateResult = await db.update(discoveredJobs)
                     .set({ status: status, updatedAt: sql`CURRENT_TIMESTAMP` })
-                    .where(eq(discoveredJobs.id, jobId), eq(discoveredJobs.userId, currentUser.userId));
+                    .where(and(eq(discoveredJobs.id, jobId), eq(discoveredJobs.userId, currentUser.userId)));
 
                 if (updateResult.rowsAffected === 0) {
-                    return new Response(JSON.stringify({ error: 'Job not found or not owned by the current user.' }), { status: 404, headers: { 'Content-Type': 'application/json' } });
+                    return withCors(new Response(JSON.stringify({ error: 'Job not found or not owned by the current user.' }), { status: 404, headers: { 'Content-Type': 'application/json' } }));
                 }
 
-                return Response.json({ message: `Job ${jobId} status updated to ${status}.` });
+                return jsonWithCors({ message: `Job ${jobId} status updated to ${status}.` });
 
             } catch (error) {
                 console.error(`Error updating job ${jobId} status:`, error);
                 const errorMessage = error instanceof Error ? error.message : 'Internal Server Error';
-                return new Response(JSON.stringify({ error: errorMessage }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+                return withCors(new Response(JSON.stringify({ error: errorMessage }), { status: 500, headers: { 'Content-Type': 'application/json' } }));
             }
         }
 
@@ -208,7 +232,7 @@ const server = Bun.serve({
                 access_type: 'offline',
                 prompt: 'consent',
             });
-            return Response.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`, 302);
+            return withCors(Response.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`, 302));
         }
 
         if (req.method === 'GET' && url.pathname === '/api/auth/google/callback') {
@@ -231,7 +255,7 @@ const server = Bun.serve({
                 const tokenJson = await tokenRes.json();
                 if (!tokenRes.ok || !tokenJson.access_token) {
                     console.error('Google token exchange failed:', { tokenJson, redirect_uri: effectiveGoogleRedirectUri });
-                    return new Response(JSON.stringify({ error: 'Google token exchange failed.', details: tokenJson, redirect_uri: effectiveGoogleRedirectUri }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+                    return withCors(new Response(JSON.stringify({ error: 'Google token exchange failed.', details: tokenJson, redirect_uri: effectiveGoogleRedirectUri }), { status: 502, headers: { 'Content-Type': 'application/json' } }));
                 }
 
                 const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
@@ -241,7 +265,7 @@ const server = Bun.serve({
 
                 if (!profile?.email || !profile?.sub) {
                     console.error('Google profile fetch failed:', profile);
-                    return new Response(JSON.stringify({ error: 'Unable to retrieve Google profile information.' }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+                    return withCors(new Response(JSON.stringify({ error: 'Unable to retrieve Google profile information.' }), { status: 502, headers: { 'Content-Type': 'application/json' } }));
                 }
 
                 const result = await findOrCreateGoogleUser({
@@ -258,15 +282,15 @@ const server = Bun.serve({
                     name: result.name || '',
                 });
 
-                return Response.redirect(`http://localhost:5173/google-callback?${params.toString()}`, 302);
+                return withCors(Response.redirect(`http://localhost:5173/google-callback?${params.toString()}`, 302));
             } catch (error) {
                 console.error('Google callback error:', error);
                 const message = error instanceof Error ? error.message : 'Internal Server Error';
-                return new Response(JSON.stringify({ error: message }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+                return withCors(new Response(JSON.stringify({ error: message }), { status: 500, headers: { 'Content-Type': 'application/json' } }));
             }
         }
 
-        return new Response('Not Found', { status: 404 });
+        return withCors(new Response('Not Found', { status: 404 }));
     },
 });
 
