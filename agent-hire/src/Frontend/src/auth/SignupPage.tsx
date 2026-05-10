@@ -77,12 +77,12 @@ export default function RegisterPage({ navigate }: RegisterPageProps) {
                 <section className="flex items-center justify-center px-6 py-10 sm:px-10 lg:px-16">
                     <div className="w-full max-w-[520px]">
                         <h2 className="text-5xl tracking-[0.15em] text-[#dce4f4] leading-tight text-white">SignUp</h2>
-                        
+
 
                         <form onSubmit={handleSubmit} className="mt-12 space-y-7">
                             <div>
                                 <label htmlFor="name" className="mb-2 block text-sm font-semibold uppercase tracking-[0.14em] text-[#c0cde3]">
-                                Name
+                                    Name
                                 </label>
                                 <input
                                     id="name"

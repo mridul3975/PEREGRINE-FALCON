@@ -132,12 +132,12 @@ export default function LoginPage({ navigate }: LoginPageProps) {
                                 <button type="button" className="h-12 border border-white/20 text-sm font-semibold uppercase tracking-[0.08em] text-[#e1e8f6]">
                                     SSO
                                 </button>
-                                <button type="button" 
-                                onClick={() => {
-                                    window.location.href = buildApiUrl('/api/auth/google/login');
-                                }}
-                                className="h-12 border border-white/20 text-sm font-semibold uppercase tracking-[0.08em] text-[#e1e8f6]">
-                                      Sign in with Google
+                                <button type="button"
+                                    onClick={() => {
+                                        window.location.href = buildApiUrl('/api/auth/google/login');
+                                    }}
+                                    className="h-12 border border-white/20 text-sm font-semibold uppercase tracking-[0.08em] text-[#e1e8f6]">
+                                    Sign in with Google
 
                                 </button>
                             </div>
