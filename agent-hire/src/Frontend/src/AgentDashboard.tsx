@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import JSON5 from 'json5';
 import { useAuth } from './context/AuthContext';
-import { buildApiUrl } from './utils/api';
+import { API_BASE_URL, buildApiUrl } from './utils/api';
 
 type AgentDashboardProps = {
     navigate: (to: string) => void;
@@ -256,7 +256,7 @@ export default function AgentDashboard({ navigate }: AgentDashboardProps) {
                 data = JSON.parse(rawResponse);
             } catch {
                 console.error('process-jobs invalid JSON:', rawResponse);
-                throw new Error('Received invalid JSON from the server. Is the backend running on port 3000?');
+                throw new Error(`Received invalid JSON from the server. Check the configured API base URL: ${API_BASE_URL}`);
             }
 
             setProcessedJobIds(data.newJobIds);
