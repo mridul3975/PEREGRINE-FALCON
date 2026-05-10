@@ -236,15 +236,15 @@ export default function AgentDashboard({ navigate }: AgentDashboardProps) {
                 body: JSON.stringify({ resume, jobs: normalizedJobs }),
             });
 
+            const rawResponse = await response.text();
             if (!response.ok) {
                 let errorText = 'Failed to process jobs.';
                 try {
-                    const errorData = await response.json();
-                    errorText = errorData.error || errorText;
+                    const errorData = JSON.parse(rawResponse);
+                    errorText = errorData?.error || errorText;
                 } catch {
-                    const rawText = await response.text();
-                    if (rawText) {
-                        errorText = rawText;
+                    if (rawResponse) {
+                        errorText = rawResponse;
                     }
                 }
                 throw new Error(errorText);
@@ -252,7 +252,7 @@ export default function AgentDashboard({ navigate }: AgentDashboardProps) {
 
             let data;
             try {
-                data = await response.json();
+                data = JSON.parse(rawResponse);
             } catch {
                 throw new Error('Received invalid JSON from the server. Is the backend running on port 3000?');
             }
