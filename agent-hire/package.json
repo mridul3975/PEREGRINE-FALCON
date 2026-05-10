@@ -9,9 +9,9 @@
     "dev:frontend": "cd src/Frontend && bun run dev",
     "build:frontend": "cd src/Frontend && bun run build",
     "preview:frontend": "cd src/Frontend && bun run preview",
-    "install": "bun install --frozen-lockfile",
-    "postinstall": "bun install --frozen-lockfile",
-    "build": "bun install --frozen-lockfile && echo \"no build needed\""
+    "install": "bun install",
+    "postinstall": "bun install",
+    "build": "bun install && echo \"no build needed\""
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
