@@ -9,14 +9,14 @@
     "dev:frontend": "cd src/Frontend && bun run dev",
     "build:frontend": "cd src/Frontend && bun run build",
     "preview:frontend": "cd src/Frontend && bun run preview",
-    "install": "bun install",
+    "install": "bun install --frozen-lockfile",
     "build": "bun vite build"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
     "@types/bun": "latest",
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/node": "^25.6.0",
+    "@types/node": "^25.6.0", 
     "drizzle-kit": "^0.31.10"
   },
   "dependencies": {
