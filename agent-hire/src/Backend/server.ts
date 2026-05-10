@@ -15,10 +15,11 @@ const server = Bun.serve({
         const url = new URL(req.url);
         const defaultGoogleRedirectUri = `${url.origin}/api/auth/google/callback`;
         const googleRedirectUriFromEnv = process.env.GOOGLE_REDIRECT_URI?.trim();
-        const effectiveGoogleRedirectUri =
-            googleRedirectUriFromEnv && !googleRedirectUriFromEnv.includes('localhost:5173')
-                ? googleRedirectUriFromEnv
-                : defaultGoogleRedirectUri;
+        const effectiveGoogleRedirectUri = googleRedirectUriFromEnv || defaultGoogleRedirectUri;
+
+        if (!effectiveGoogleRedirectUri) {
+            return new Response(JSON.stringify({ error: 'No Google redirect URI configured.' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+        }
 
         if (url.pathname.startsWith('/api/') && !url.pathname.startsWith('/api/auth')) {
             const authResponse = await authMiddleware(req);
@@ -211,42 +212,61 @@ const server = Bun.serve({
         }
 
         if (req.method === 'GET' && url.pathname === '/api/auth/google/callback') {
-            const code = url.searchParams.get('code');
-            if (!code) return new Response('Missing code', { status: 400 });
+            try {
+                const code = url.searchParams.get('code');
+                if (!code) return new Response('Missing code', { status: 400 });
 
-            const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({
-                    code,
-                    client_id: process.env.GOOGLE_CLIENT_ID!,
-                    client_secret: process.env.GOOGLE_CLIENT_SECRET!,
-                    redirect_uri: effectiveGoogleRedirectUri,
-                    grant_type: 'authorization_code',
-                }),
-            });
-            const tokenJson = await tokenRes.json();
-            const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                headers: { Authorization: `Bearer ${tokenJson.access_token}` },
-            });
-            const profile = await userInfoRes.json();
+                const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        code,
+                        client_id: process.env.GOOGLE_CLIENT_ID!,
+                        client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+                        redirect_uri: effectiveGoogleRedirectUri,
+                        grant_type: 'authorization_code',
+                    }),
+                });
 
-            const result = await findOrCreateGoogleUser({
-                email: profile.email,
-                name: profile.name,
-                sub: profile.sub,
-            });
+                const tokenJson = await tokenRes.json();
+                if (!tokenRes.ok || !tokenJson.access_token) {
+                    console.error('Google token exchange failed:', { tokenJson, redirect_uri: effectiveGoogleRedirectUri });
+                    return new Response(JSON.stringify({ error: 'Google token exchange failed.', details: tokenJson, redirect_uri: effectiveGoogleRedirectUri }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+                }
 
-            const params = new URLSearchParams({
-                accessToken: result.accessToken,
-                refreshToken: result.refreshToken,
-                userId: result.userId.toString(),
-                email: result.email,
-                name: result.name || '',
-            });
+                const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                    headers: { Authorization: `Bearer ${tokenJson.access_token}` },
+                });
+                const profile = await userInfoRes.json();
 
-            return Response.redirect(`http://localhost:5173/google-callback?${params.toString()}`, 302);
+                if (!profile?.email || !profile?.sub) {
+                    console.error('Google profile fetch failed:', profile);
+                    return new Response(JSON.stringify({ error: 'Unable to retrieve Google profile information.' }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+                }
+
+                const result = await findOrCreateGoogleUser({
+                    email: profile.email,
+                    name: profile.name,
+                    sub: profile.sub,
+                });
+
+                const params = new URLSearchParams({
+                    accessToken: result.accessToken,
+                    refreshToken: result.refreshToken,
+                    userId: result.userId.toString(),
+                    email: result.email,
+                    name: result.name || '',
+                });
+
+                return Response.redirect(`http://localhost:5173/google-callback?${params.toString()}`, 302);
+            } catch (error) {
+                console.error('Google callback error:', error);
+                const message = error instanceof Error ? error.message : 'Internal Server Error';
+                return new Response(JSON.stringify({ error: message }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+            }
         }
+
+        return new Response('Not Found', { status: 404 });
     },
 });
 

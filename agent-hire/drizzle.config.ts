@@ -1,4 +1,5 @@
 // drizzle.config.ts
+import 'dotenv/config';
 import type { Config } from 'drizzle-kit';
 
 export default {
@@ -6,6 +7,6 @@ export default {
     out: "./drizzle", // Migrations will be generated here
     dialect: "sqlite",
     dbCredentials: {
-        url: "file:./sqlite.db", // Must match your connection.ts
-    }
+        url: process.env.TURSO_DATABASE_URL ?? "file:./sqlite.db",
+    },
 } satisfies Config;

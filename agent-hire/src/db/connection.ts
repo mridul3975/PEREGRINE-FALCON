@@ -1,10 +1,23 @@
 // src/db/connection.ts
+import 'dotenv/config';
 import { drizzle } from 'drizzle-orm/libsql';
-import { createClient } from '@libsql/client';
 import * as schema from './schema';
-// Use a file-based SQLite database
+import { createClient } from '@libsql/client';
+
+const TURSO_DATABASE_URL = process.env.TURSO_DATABASE_URL;
+const TURSO_AUTH_TOKEN = process.env.TURSO_AUTH_TOKEN;
+
+if (!TURSO_DATABASE_URL) {
+    throw new Error('Missing TURSO_DATABASE_URL in environment');
+}
+
+if (!TURSO_AUTH_TOKEN) {
+    throw new Error('Missing TURSO_AUTH_TOKEN in environment');
+}
+
 const client = createClient({
-    url: 'file:./sqlite.db',
+    url: TURSO_DATABASE_URL,
+    authToken: TURSO_AUTH_TOKEN,
 });
 
 export const db = drizzle(client, { schema });
@@ -94,4 +107,4 @@ ensureDiscoveredJobsSchema().catch((error) => {
     console.error('Schema migration error:', error);
 });
 
-console.log("Database connection established to sqlite.db");
+console.log("Database connection established to Turso via @libsql/client");
