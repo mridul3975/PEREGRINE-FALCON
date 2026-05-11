@@ -16,6 +16,9 @@ export default function AgentDashboard({ navigate }: AgentDashboardProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [jobSummariesInput, setJobSummariesInput] = useState('');
+    const [jobTitleInput, setJobTitleInput] = useState('');
+    const [jobCompanyInput, setJobCompanyInput] = useState('');
+    const [jobSummaryInput, setJobSummaryInput] = useState('');
     const [processedJobIds, setProcessedJobIds] = useState<number[]>([]);
 
     type Job = {
@@ -315,7 +318,7 @@ export default function AgentDashboard({ navigate }: AgentDashboardProps) {
                         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                             <div>
 
-                                <h2 className="mt-3 text-2xl uppercase tracking-[0.25em] text-white">JOB-PROFILE ALIGNMENT</h2>
+                                <h2 className="mt-3 text-2xl uppercase tracking-[0.25em] text-white">BOOST YOUR RESUME</h2>
                             </div>
                             <div className="rounded-full bg-[#273142] px-4 py-2 text-xs uppercase tracking-[0.24em] text-[#d8e1f3]">Tailoring Mode</div>
                         </div>
@@ -419,20 +422,65 @@ export default function AgentDashboard({ navigate }: AgentDashboardProps) {
                     <section className="rounded-3xl border border-white/10 bg-[#0b0f16] p-6 shadow-xl shadow-black/20">
                         <div className="flex flex-wrap items-center justify-between gap-3">
                             <div>
-                                <h3 className="mt-2 uppercase tracking-[0.25em] text-2xl text-white">JOB SUMMARIES</h3>
+                                <h3 className="mt-2 uppercase tracking-[0.25em] text-2xl text-white">EVAUATE JOB SUITABILITY</h3>
                             </div>
                             <span className="rounded-full bg-[#273142] px-3 py-1 text-xs uppercase tracking-[0.24em] text-[#d8e1f3]">Processing Mode: High</span>
                         </div>
 
                         <div className="mt-5 rounded-3xl border border-white/10 bg-[#080c13] p-4">
-                            <textarea
-                                id="jobSummaries"
-                                className="h-56 w-full resize-none rounded-3xl border border-white/15 bg-[#0b0f16] p-4 text-sm text-[#e8ecf5] outline-none focus:border-[#5f7dac] focus:ring-2 focus:ring-[#5f7dac]/25"
-                                placeholder='Paste job summaries here: [{"title": "...", "company": "...", "summary": "..."}, ...]'
-                                value={jobSummariesInput}
-                                onChange={(e) => setJobSummariesInput(e.target.value)}
-                            />
+                            <div className="grid gap-4">
+                                <div>
+                                    <label htmlFor="jobTitle" className="mb-2 block text-sm font-semibold uppercase tracking-[0.14em] text-[#9fb0cd]">
+                                        Job Title
+                                    </label>
+                                    <input
+                                        id="jobTitle"
+                                        type="text"
+                                        value={jobTitleInput}
+                                        onChange={(e) => {
+                                            setJobTitleInput(e.target.value);
+                                            setJobSummariesInput(`Title: ${e.target.value}\nCompany: ${jobCompanyInput}\nSummary: ${jobSummaryInput}`);
+                                        }}
+                                        className="w-full rounded-3xl border border-white/15 bg-[#0b0f16] px-4 py-3 text-sm text-[#e8ecf5] outline-none focus:border-[#5f7dac] focus:ring-2 focus:ring-[#5f7dac]/25"
+                                        placeholder="Senior Software Engineer"
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="jobCompany" className="mb-2 block text-sm font-semibold uppercase tracking-[0.14em] text-[#9fb0cd]">
+                                        Company
+                                    </label>
+                                    <input
+                                        id="jobCompany"
+                                        type="text"
+                                        value={jobCompanyInput}
+                                        onChange={(e) => {
+                                            setJobCompanyInput(e.target.value);
+                                            setJobSummariesInput(`Title: ${jobTitleInput}\nCompany: ${e.target.value}\nSummary: ${jobSummaryInput}`);
+                                        }}
+                                        className="w-full rounded-3xl border border-white/15 bg-[#0b0f16] px-4 py-3 text-sm text-[#e8ecf5] outline-none focus:border-[#5f7dac] focus:ring-2 focus:ring-[#5f7dac]/25"
+                                        placeholder="Acme Corp"
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="jobSummary" className="mb-2 block text-sm font-semibold uppercase tracking-[0.14em] text-[#9fb0cd]">
+                                        Job Description
+                                    </label>
+                                    <textarea
+                                        id="jobSummary"
+                                        value={jobSummaryInput}
+                                        onChange={(e) => {
+                                            setJobSummaryInput(e.target.value);
+                                            setJobSummariesInput(`Title: ${jobTitleInput}\nCompany: ${jobCompanyInput}\nSummary: ${e.target.value}`);
+                                        }}
+                                        className="h-40 w-full resize-none rounded-3xl border border-white/15 bg-[#0b0f16] px-4 py-3 text-sm text-[#e8ecf5] outline-none focus:border-[#5f7dac] focus:ring-2 focus:ring-[#5f7dac]/25"
+                                        placeholder="Built scalable APIs and modernized cloud services."
+                                    />
+                                </div>
+                            </div>
                         </div>
+                        <p className="mt-3 text-sm text-[#94a3bf]">
+                            Tip: Enter one job using the fields above, then click "Run Autonomous Job Agent".
+                        </p>
 
                         <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
                             <button
