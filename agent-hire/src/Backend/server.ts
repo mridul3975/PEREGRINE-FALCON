@@ -10,6 +10,7 @@ import { db } from '../db/connection';
 import { sql, eq, and } from 'drizzle-orm';
 
 const FRONTEND_ORIGIN = process.env.FRONTEND_URL || '*';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 const CORS_HEADERS = {
     'Access-Control-Allow-Origin': FRONTEND_ORIGIN,
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
@@ -282,7 +283,7 @@ const server = Bun.serve({
                     name: result.name || '',
                 });
 
-                return withCors(Response.redirect(`http://localhost:5173/google-callback?${params.toString()}`, 302));
+                return withCors(Response.redirect(`${FRONTEND_URL}/google-callback?${params.toString()}`, 302));
             } catch (error) {
                 console.error('Google callback error:', error);
                 const message = error instanceof Error ? error.message : 'Internal Server Error';
