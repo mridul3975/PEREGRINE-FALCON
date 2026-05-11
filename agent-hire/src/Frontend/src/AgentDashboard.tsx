@@ -353,7 +353,7 @@ export default function AgentDashboard({ navigate }: AgentDashboardProps) {
                                 disabled={isLoading || !resume || !jobDescription}
                                 className="flex-1 rounded-2xl bg-[#273142] px-6 py-3 text-sm font-semibold text-[#e8ecf5] transition hover:bg-[#314059] disabled:cursor-not-allowed disabled:bg-[#1c2331]"
                             >
-                                {isLoading ? 'Running Alignment...' : 'CREATE'}
+                                {isLoading ? 'Running Alignment...' : 'Create Tailored Resume'}
                             </button>
                             <button
                                 type="button"
@@ -489,7 +489,7 @@ export default function AgentDashboard({ navigate }: AgentDashboardProps) {
                                 disabled={isLoading || !jobSummariesInput}
                                 className="flex-1 rounded-2xl bg-[#273142] px-6 py-3 text-sm font-semibold text-[#e8ecf5] transition hover:bg-[#314059] disabled:cursor-not-allowed disabled:bg-[#1c2331]"
                             >
-                                {isLoading ? 'Processing Jobs...' : 'Run Autonomous Job Agent'}
+                                {isLoading ? 'Processing Jobs...' : 'Run Agent'}
                             </button>
                             <button
                                 type="button"
