@@ -30,8 +30,9 @@ function jsonWithCors(body: unknown, init?: ResponseInit) {
     return withCors(response);
 }
 
+const PORT = Number(process.env.PORT || 3000);
 const server = Bun.serve({
-    port: 3000,
+    port: PORT,
     async fetch(req: Request) {
         const url = new URL(req.url);
         const defaultGoogleRedirectUri = `${url.origin}/api/auth/google/callback`;
@@ -44,6 +45,10 @@ const server = Bun.serve({
 
         if (req.method === 'OPTIONS') {
             return withCors(new Response(null, { status: 204 }));
+        }
+
+        if (url.pathname === '/') {
+            return withCors(new Response('AgentHire backend is up. Use /api/* endpoints.', { status: 200, headers: { 'Content-Type': 'text/plain' } }));
         }
 
         if (url.pathname.startsWith('/api/') && !url.pathname.startsWith('/api/auth')) {
@@ -295,4 +300,4 @@ const server = Bun.serve({
     },
 });
 
-console.log(`AgentHire Bun server running on http://localhost:${server.port}`);
+console.log(`AgentHire Bun server running on port ${server.port}`);
