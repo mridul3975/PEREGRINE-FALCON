@@ -13,9 +13,11 @@ const FRONTEND_ORIGIN = process.env.FRONTEND_URL || '*';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 const CORS_HEADERS = {
     'Access-Control-Allow-Origin': FRONTEND_ORIGIN,
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, Accept',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Credentials': 'true',
     'Access-Control-Max-Age': '86400',
+    Vary: 'Origin',
 };
 
 function withCors(response: Response) {
