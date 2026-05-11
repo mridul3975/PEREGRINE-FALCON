@@ -83,7 +83,7 @@ export default function LoginPage({ navigate }: LoginPageProps) {
                         <form onSubmit={handleSubmit} className="mt-12 space-y-7">
                             <div>
                                 <label htmlFor="email" className="mb-2 block text-sm font-semibold uppercase tracking-[0.14em] text-[#c0cde3]">
-                                    Terminal Identifier (Email)
+                                    Email
                                 </label>
                                 <input
                                     type="email"
@@ -98,7 +98,7 @@ export default function LoginPage({ navigate }: LoginPageProps) {
                             <div>
                                 <div className="mb-2 flex items-center justify-between">
                                     <label htmlFor="password" className="block text-sm font-semibold uppercase tracking-[0.14em] text-[#c0cde3]">
-                                        Access Key (Password)
+                                        Password
                                     </label>
                                     <button type="button" className="text-sm font-semibold uppercase tracking-[0.1em] text-[#dce4f4]/90">Reset</button>
                                 </div>
