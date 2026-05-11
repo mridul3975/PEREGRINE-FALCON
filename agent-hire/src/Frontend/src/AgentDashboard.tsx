@@ -353,7 +353,7 @@ export default function AgentDashboard({ navigate }: AgentDashboardProps) {
                                 disabled={isLoading || !resume || !jobDescription}
                                 className="flex-1 rounded-2xl bg-[#273142] px-6 py-3 text-sm font-semibold text-[#e8ecf5] transition hover:bg-[#314059] disabled:cursor-not-allowed disabled:bg-[#1c2331]"
                             >
-                                {isLoading ? 'Running Alignment...' : 'Run Alignment Scan'}
+                                {isLoading ? 'Running Alignment...' : 'CREATE'}
                             </button>
                             <button
                                 type="button"
