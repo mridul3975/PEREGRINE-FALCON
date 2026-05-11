@@ -479,7 +479,7 @@ export default function AgentDashboard({ navigate }: AgentDashboardProps) {
                             </div>
                         </div>
                         <p className="mt-3 text-sm text-[#94a3bf]">
-                            Tip: Enter one job using the fields above, then click "Run Autonomous Job Agent".
+                            Tip: Enter one job using the fields above, then click "RUN AGENT".
                         </p>
 
                         <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
